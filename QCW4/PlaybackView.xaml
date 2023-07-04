@@ -1,0 +1,41 @@
+﻿<Window x:Class="QCW4.PlaybackView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
+        mc:Ignorable="d"
+        Loaded="OnLoaded"
+        Background="#333333" Foreground="WhiteSmoke"
+        Title="Playback" Width="700" Height="300" WindowState="Maximized"
+        ResizeMode="CanResize">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="10,2" />
+        </Style>
+    </Window.Resources>
+    
+    <DockPanel Margin="10">
+        <UniformGrid DockPanel.Dock="Bottom" Columns="7" Margin="0,5,0,0" HorizontalAlignment="Center">
+            <Button Content="Stop" Command="{Binding StopCommand}" ToolTip="Stop" />
+            <Button Content="Play" Command="{Binding PlayCommand}" Margin="5,0,0,0" ToolTip="Play (space)" />
+            <Button Content="Pause" Command="{Binding PauseCommand}" Margin="5,0,0,0" ToolTip="Pause (space)" />
+            <Button Content="Slower" Command="{Binding SlowerCommand}" Margin="5,0,0,0" ToolTip="Slower (down arrow)" />
+            <Button Content="Faster" Command="{Binding FasterCommand}" Margin="5,0,0,0" ToolTip="Faster (up arrow)" />
+            <Button Content="Previous" Command="{Binding PreviousCommand}" Margin="15,0,0,0" ToolTip="Previous (left arrow)" />
+            <Button Content="Next" Command="{Binding NextCommand}" Margin="5,0,0,0" ToolTip="Next (right arrow)" />
+        </UniformGrid>
+
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,5,0,0">
+            <TextBlock DockPanel.Dock="Left" Text="{Binding SliderTimeText}" />
+            <Slider Minimum="{Binding PlaybackSliderMinimum}" Maximum="{Binding PlaybackSliderMaximum}" Value="{Binding PlaybackSliderValue}" Margin="5,0,0,0"
+                    LargeChange="{Binding SliderLargeChange}" />
+        </DockPanel>
+
+        <Viewbox>
+            <WindowsFormsHost Width="{Binding ImageInitialWidth}" Height="{Binding ImageInitialHeight}">
+                <wf:PictureBox x:Name="PlaybackPictureBox" />
+            </WindowsFormsHost>
+        </Viewbox>
+    </DockPanel>
+</Window>
