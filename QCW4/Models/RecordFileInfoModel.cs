@@ -1,12 +1,11 @@
 ﻿using NetSDKCS;
-using QCW4.Properties;
 using System;
 using System.ComponentModel;
 using System.Windows.Media;
 
-namespace QCW4
+namespace QSeeView.Models
 {
-    public class RecordFileInfo : INotifyPropertyChanged
+    public class RecordFileInfoModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -14,7 +13,7 @@ namespace QCW4
         private int _progressPercentValue;
         private string _progressString;
 
-        public RecordFileInfo(NET_RECORDFILE_INFO source, int id)
+        public RecordFileInfoModel(NET_RECORDFILE_INFO source, int id)
         {
             ID = id;
             Source = source;
@@ -45,17 +44,10 @@ namespace QCW4
         {
             get
             {
-                switch (Channel)
-                {
-                    case 0:
-                        return Settings.Default.Channel1Name ?? "1";
-                    case 1:
-                        return Settings.Default.Channel2Name ?? "2";
-                    case 2:
-                        return Settings.Default.Channel3Name ?? "3";
-                    case 3:
-                        return Settings.Default.Channel4Name ?? "4";
-                }
+                if (string.IsNullOrEmpty(App.Settings.ChannelsInfo[(int)Channel].Name))
+                    return Channel.ToString();
+                else
+                    return App.Settings.ChannelsInfo[(int)Channel].Name;
 
                 throw new Exception();
             }
@@ -106,10 +98,12 @@ namespace QCW4
                    $"_{StartTime.Hour:00}h{StartTime.Minute:00}m{StartTime.Second:00}";
         }
 
-        internal void ResetProgress()
+        public void ResetProgress()
         {
             ProgressPercentValue = 0;
             ProgressString = string.Empty;
         }
+
+        public void RefreshChannelNames() => OnPropertyChanged(nameof(ChannelName));
     }
 }

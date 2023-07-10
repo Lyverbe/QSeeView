@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace QCW4
+namespace QSeeView
 {
     public class RelayCommand<T> : ICommand
     {

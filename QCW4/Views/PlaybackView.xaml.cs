@@ -1,38 +1,37 @@
 ﻿using NetSDKCS;
-using QCW4.Properties;
+using QSeeView.Models;
+using QSeeView.Tools;
+using QSeeView.ViewModels;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using System.Windows.Input;
+using System.Windows.Media;
 
-namespace QCW4
+namespace QSeeView.Views
 {
     public partial class PlaybackView : Window
     {
+        private IDeviceManager _deviceManager;
+        private PictureBox _pictureBox;
         private PlaybackViewModel _viewModel;
-        private IList<RecordFileInfo> _records;
-        private IntPtr _loginId;
+        private IList<RecordFileInfoModel> _records;
         private bool _reinitializePlayer;
         private int _playIndex;
         private double _currentSpeed;
 
-        public PlaybackView(IList<RecordFileInfo> records, int playIndex, IntPtr loginId)
+        public PlaybackView(IDeviceManager deviceManager, IList<RecordFileInfoModel> records, int playIndex)
         {
             InitializeComponent();
 
-            _viewModel = new PlaybackViewModel();
-            DataContext = _viewModel;
-
-            PlaybackPictureBox.Refresh();
-            PlaybackPictureBox.BorderStyle = BorderStyle.FixedSingle;
-            PlaybackPictureBox.Size = PlaybackViewModel.HDSize;
-            PlaybackPictureBox.Refresh();
-
+            _deviceManager = deviceManager;
             _records = records;
             _playIndex = playIndex;
-            _loginId = loginId;
+
+            _viewModel = new PlaybackViewModel();
+            DataContext = _viewModel;
 
             _viewModel.Close += (s, e) => Close();
             _viewModel.PlaybackTimeChanged += ViewModel_PlaybackTimeChanged;
@@ -40,9 +39,19 @@ namespace QCW4
             _viewModel.NextVideo += (s, e) => PlayNextVideo();
             _viewModel.ReduceSpeed += (s, e) => ReduceSpeed();
             _viewModel.IncreaseSpeed += (s, e) => IncreaseSpeed();
+            _viewModel.SetPlaybackControl += (s, command) => _deviceManager.PlaybackControl(_viewModel.PlaybackID, command);
+            _viewModel.UpdateSlider += ViewModel_UpdateSlider;
+
+            Loaded += PlaybackView_Loaded;
+            ContentRendered += (s, e) => InitializePlayback();
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e) => InitializePlayback();
+        private void PlaybackView_Loaded(object sender, EventArgs e)
+        {
+            _pictureBox = FindPictureBox(this);
+            _pictureBox.BorderStyle = BorderStyle.FixedSingle;
+            _pictureBox.Refresh();
+        }
 
         protected override void OnClosed(EventArgs e)
         {
@@ -50,100 +59,59 @@ namespace QCW4
             base.OnClosed(e);
         }
 
+        public static PictureBox FindPictureBox(DependencyObject dependencyObj)
+        {
+            if (dependencyObj != null)
+            {
+                for (var childId = 0; childId < VisualTreeHelper.GetChildrenCount(dependencyObj); childId++)
+                {
+                    var child = VisualTreeHelper.GetChild(dependencyObj, childId);
+                    if (child != null && child is WindowsFormsHost)
+                        return ((WindowsFormsHost)child).Child as PictureBox;
+
+                    var pictureBox = FindPictureBox(child);
+                    if (pictureBox != null)
+                        return pictureBox;
+                }
+            }
+            return null;
+        }
+
         private void InitializePlayback()
         {
             _currentSpeed = 1.0;
-
-            SetLandscapeMode();
+            _viewModel.IsLandscape = App.Settings.ChannelsInfo[(int)_records[_playIndex].Channel].IsLandscape;
             _viewModel.RefreshPlaybackImageSize();
-            SetResolution();
-            UpdateTitle();
-            StartPlayback(_records[_playIndex].Source.starttime);
-            _viewModel.Start();
 
-            Left = 0;
-            Top = 0;
+            UpdateTitle();
+            InitializeSlider();
+            StartPlayback(_records[_playIndex].Source.starttime);
         }
 
         private void StartPlayback(NET_TIME startTime)
         {
-            var stream = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(int)));
-            Marshal.StructureToPtr((int)EM_STREAM_TYPE.MAIN, stream, true);
-            NETClient.SetDeviceMode(_loginId, EM_USEDEV_MODE.RECORD_STREAM_TYPE, stream);
-
-            var inputInfo = new NET_IN_PLAY_BACK_BY_TIME_INFO();
-            var outputInfo = new NET_OUT_PLAY_BACK_BY_TIME_INFO();
-            inputInfo.stStartTime = startTime;
-            inputInfo.stStopTime = _records[_playIndex].Source.endtime;
-            inputInfo.hWnd = PlaybackPictureBox.Handle;
-            inputInfo.cbDownLoadPos = null;
-            inputInfo.dwPosUser = IntPtr.Zero;
-            inputInfo.fDownLoadDataCallBack = null;
-            inputInfo.dwDataUser = IntPtr.Zero;
-            inputInfo.nPlayDirection = 0;
-            inputInfo.nWaittime = 0;
-
-            _viewModel.PlaybackID = NETClient.PlayBackByTime(_loginId, (int)_records[_playIndex].Channel, inputInfo, ref outputInfo);
-            _viewModel.IsPaused = false;
-        }
-
-        private void SetLandscapeMode()
-        {
-            switch (_records[_playIndex].Channel)
-            {
-                case 0: _viewModel.IsLandscape = Settings.Default.IsChannel1Landscape; break;
-                case 1: _viewModel.IsLandscape = Settings.Default.IsChannel2Landscape; break;
-                case 2: _viewModel.IsLandscape = Settings.Default.IsChannel3Landscape; break;
-                case 3: _viewModel.IsLandscape = Settings.Default.IsChannel4Landscape; break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        private void SetResolution()
-        {
-            double HDRatio = PlaybackViewModel.HDSize.Width / (double)PlaybackViewModel.HDSize.Height;
-            if (_viewModel.IsLandscape)
-            {
-                Width = 1100;
-                Height = (Width / HDRatio);
-            }
-            else
-            {
-                Width = 400;
-                Height = (Width * HDRatio);
-            }
+            _viewModel.PlaybackID = _deviceManager.StartPlayback(startTime, _records[_playIndex].Source.endtime, _records[_playIndex].Channel, _pictureBox.Handle);
+            _viewModel.Start();
         }
 
         private void ViewModel_PlaybackTimeChanged(object sender, EventArgs e)
         {
-            if (_viewModel.IsMouseDown && !_reinitializePlayer)
-            {
-                _viewModel.Stop();
+            if (_viewModel.IsPaused)
                 _reinitializePlayer = true;
-            }
-        }
-
-        protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
-        {
-            _viewModel.IsMouseDown = true;
-
-            _reinitializePlayer = false;
-            base.OnPreviewMouseLeftButtonUp(e);
         }
 
         protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
         {
-            _viewModel.IsMouseDown = false;
-
             if (_reinitializePlayer)
             {
+                _viewModel.Stop();
                 System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     var time = new DateTime((long)_viewModel.PlaybackSliderValue);
                     var deviceTime = NET_TIME.FromDateTime(time);
                     StartPlayback(deviceTime);
                 }));
+                _reinitializePlayer = false;
             }
 
             base.OnPreviewMouseLeftButtonUp(e);
@@ -191,9 +159,9 @@ namespace QCW4
                 case Key.Space:
                     {
                         if (_viewModel.IsPaused)
-                            _viewModel.Play();
+                            _viewModel.PlayCommand.Execute(null);
                         else
-                            _viewModel.Pause();
+                            _viewModel.PauseCommand.Execute(null);
                         break;
                     }
             }
@@ -205,7 +173,7 @@ namespace QCW4
         {
             if (_currentSpeed > 0.125)
             {
-                NETClient.PlayBackControl(_viewModel.PlaybackID, PlayBackType.Slow);
+                _deviceManager.PlaybackControl(_viewModel.PlaybackID, PlayBackType.Slow);
                 _currentSpeed /= 2;
                 UpdateTitle();
             }
@@ -215,7 +183,7 @@ namespace QCW4
         {
             if (_currentSpeed < 8.0)
             {
-                NETClient.PlayBackControl(_viewModel.PlaybackID, PlayBackType.Fast);
+                _deviceManager.PlaybackControl(_viewModel.PlaybackID, PlayBackType.Fast);
                 _currentSpeed *= 2;
                 UpdateTitle();
             }
@@ -225,8 +193,8 @@ namespace QCW4
         {
             if (_playIndex > 0)
             {
-                _playIndex--;
                 _viewModel.Stop();
+                _playIndex--;
                 InitializePlayback();
             }
         }
@@ -235,9 +203,28 @@ namespace QCW4
         {
             if (_playIndex + 1 < _records.Count)
             {
-                _playIndex++;
                 _viewModel.Stop();
+                _playIndex++;
                 InitializePlayback();
+            }
+        }
+
+        private void InitializeSlider()
+        {
+            _viewModel.PlaybackSliderMinimum = _records[_playIndex].StartTime.Ticks;
+            _viewModel.PlaybackSliderMaximum = _records[_playIndex].EndTime.Ticks;
+            _viewModel.SliderLargeChange = (_viewModel.PlaybackSliderMaximum - _viewModel.PlaybackSliderMinimum) / 10;
+        }
+
+        private void ViewModel_UpdateSlider(object sender, EventArgs e)
+        {
+            var currentTick = _deviceManager.GetPlayBackOsdTick(_viewModel.PlaybackID);
+            if (currentTick.HasValue)
+            {
+                if (currentTick < _viewModel.PlaybackSliderMinimum)
+                    _viewModel.PlaybackSliderMinimum = currentTick.Value;
+
+                _viewModel.PlaybackSliderValue = currentTick.Value;
             }
         }
     }

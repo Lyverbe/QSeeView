@@ -1,0 +1,61 @@
+﻿<Window x:Class="QSeeView.Views.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:QSeeView.Converters"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
+        Title="Settings" Width="400" SizeToContent="Height">
+    <Window.Resources>
+        <converters:ChannelIdConverter x:Key="ChannelIdConverter" />
+    </Window.Resources>
+    
+    <DockPanel Margin="10">
+        <UniformGrid DockPanel.Dock="Bottom" Columns="2" HorizontalAlignment="Right" Margin="0,5,0,0">
+            <Button Content="OK" Command="{Binding OkCommand}" IsDefault="True" />
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5,0,0,0" />
+        </UniformGrid>
+
+        <StackPanel>
+            <CheckBox Content="Automatic login" IsChecked="{Binding IsAutomaticLogin}" />
+            <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
+            <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
+
+            <DockPanel Margin="0,5,0,0">
+                <TextBlock DockPanel.Dock="Left" Text="Download folder " VerticalAlignment="Center" />
+                <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseDownloadFolderCommand}" ToolTip="Set download folder" />
+                <TextBox Text="{Binding DownloadFolder}" />
+            </DockPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                <TextBlock Text="Night files are between " />
+                <TextBox Text="{Binding NightFilesStartHour}" Width="20" />
+                <TextBlock Text="h00 and " />
+                <TextBox Text="{Binding NightFilesEndHour}" Width="20" />
+                <TextBlock Text="h00" />
+            </StackPanel>
+
+            <GroupBox Header="Channels" Margin="0,5,0,0">
+                <StackPanel Margin="5">
+                    <TextBlock Text="If a channel is not used, leave its name blank." TextWrapping="Wrap" />
+
+                    <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding ChannelsInfo}" Margin="0,5,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,1,0,0">
+                                        <TextBlock DockPanel.Dock="Left" Text="{Binding ChannelId, Converter={StaticResource ChannelIdConverter}}"
+                                               HorizontalAlignment="Center" MinWidth="15" />
+                                        <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsLandscape}" HorizontalAlignment="Center" ToolTip="Is landscape" />
+
+                                        <TextBox Text="{Binding Name}" Margin="5,0,5,0" VerticalAlignment="Center" MaxLength="25" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </DockPanel>
+</Window>

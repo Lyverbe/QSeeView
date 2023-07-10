@@ -1,61 +1,78 @@
-﻿using NetSDKCS;
-using QCW4.Properties;
+﻿using QSeeView.Models;
+using QSeeView.Tools;
+using QSeeView.Views;
 using System;
+using System.Linq;
 using System.Windows;
 
-namespace QCW4
+namespace QSeeView
 {
     public partial class MainWindow : Window
     {
-        MainWindowViewModel _viewModel;
+        private MainWindowViewModel _viewModel;
 
-        public MainWindow()
+        private IDeviceManager _deviceManager;
+
+        public MainWindow(IDeviceManager deviceManager)
         {
             InitializeComponent();
-            _viewModel = new MainWindowViewModel();
+
+            _deviceManager = deviceManager;
+
+            _viewModel = new MainWindowViewModel(deviceManager);
             DataContext = _viewModel;
 
-            if (!_viewModel.IsLoggedIn)
-            {
-                MessageBox.Show("Initialization failed", "Initialization", MessageBoxButton.OK, MessageBoxImage.Error);
-                Close();
-            }
-            _viewModel.ShowMessage += ViewModel_ShowMessage;
             _viewModel.PlayRecord += ViewModel_PlayRecord;
-            _viewModel.SetChannels += ViewModel_SetChannels;
+            _viewModel.ShowSettings += ViewModel_ShowSettings;
+            _viewModel.Query += (s, e) => Query();
+            _viewModel.ShowLiveView += ViewModel_ShowLiveView;
 
-            ContentRendered += (s, e) => _viewModel.OnQuery();
+            if (App.Settings.IsAutoQueryAtStartup)
+                ContentRendered += (s, e) => Query();
         }
 
         protected override void OnClosed(EventArgs e)
         {
-            OriginalSDK.CLIENT_Cleanup();
-            Settings.Default.Save();
+            _deviceManager.Shutdown();
             base.OnClosed(e);
         }
 
-        private void ViewModel_ShowMessage(object sender, string message)
-        {
-            MessageBox.Show(message);
-        }
-
-        private void ViewModel_PlayRecord(object sender, RecordFileInfo record)
+        private void ViewModel_PlayRecord(object sender, RecordFileInfoModel record)
         {
             var playIndex = _viewModel.Records.IndexOf(record);
-            var view = new PlaybackView(_viewModel.Records, playIndex, _viewModel.LoginId)
+            var view = new PlaybackView(_deviceManager, _viewModel.Records, playIndex)
             {
                 Owner = this
             };
             view.ShowDialog();
         }
 
-        private void ViewModel_SetChannels(object sender, EventArgs e)
+        private void Query()
         {
-            var view = new ChannelsView()
+            _viewModel.Records = _deviceManager.Query(_viewModel.StartDateTime, _viewModel.EndDateTime, App.Settings.IsQueryIgnoringNightFiles);
+            if (_viewModel.Records.Count >= _deviceManager.MaxQueryRecords)
+                MessageBox.Show($"Limit of {_deviceManager.MaxQueryRecords} records has been reached. Some files may be missing.", "Query");
+
+            _viewModel.CheckAll = true;
+        }
+
+        private void ViewModel_ShowSettings(object sender, EventArgs e)
+        {
+            var view = new SettingsView()
             {
                 Owner = this
             };
-            view.ShowDialog();
+            var isOkClicked = view.ShowDialog();
+            if (isOkClicked == true)
+                _viewModel.Records?.ToList().ForEach(record => record.RefreshChannelNames());
+        }
+
+        private void ViewModel_ShowLiveView(object sender, EventArgs e)
+        {
+            new LiveView(_deviceManager)
+            {
+                Owner = this
+            }.ShowDialog();
         }
     }
 }
