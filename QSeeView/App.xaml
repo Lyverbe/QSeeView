@@ -13,5 +13,9 @@
         <Style TargetType="CheckBox">
             <Setter Property="Foreground" Value="{StaticResource ForegroundColor}" />
         </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
     </Application.Resources>
 </Application>

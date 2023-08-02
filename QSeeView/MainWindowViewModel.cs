@@ -1,5 +1,4 @@
 ﻿using QSeeView.Models;
-using QSeeView.Tools;
 using QSeeView.Types;
 using System;
 using System.Collections.Generic;
@@ -17,12 +16,13 @@ namespace QSeeView
         public event EventHandler ShowSettings;
         public event EventHandler Query;
         public event EventHandler ShowLiveView;
+        public event EventHandler StartDownload;
+        public event EventHandler StopDownload;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private IDeviceManager _deviceManager;
-        private Downloader _downloader;
-
+        private DateTime _startDateTime;
+        private DateTime _endDateTime;
         private bool _isRecordsListEnabled;
         private bool _isQueryEnabled;
         private string _downloadCommandString;
@@ -32,14 +32,11 @@ namespace QSeeView
         private StateType _state;
         private bool _isErrorSectionVisible;
         private double _taskbarProgressValue;
-        private int _totalDownloadCount;
         private IList<RecordFileInfoModel> _records;
+        private string _datesOffsetString;
 
-        public MainWindowViewModel(IDeviceManager deviceManager)
+        public MainWindowViewModel()
         {
-            _deviceManager = deviceManager;
-            _downloader = new Downloader(deviceManager);
-
             DownloadErrors = new ObservableCollection<string>();
             QueryCommand = new RelayCommand(() => Query?.Invoke(this, EventArgs.Empty));
             DownloadStopCommand = new RelayCommand(OnDownloadOrStop, IsDownloadCommandAvailable);
@@ -48,16 +45,14 @@ namespace QSeeView
             PlayCommand = new RelayCommand<RecordFileInfoModel>((record) => PlayRecord?.Invoke(this, record));
             SettingsCommand = new RelayCommand(() => ShowSettings?.Invoke(this, EventArgs.Empty));
             LiveViewCommand = new RelayCommand(() => ShowLiveView?.Invoke(this, EventArgs.Empty));
+            DecreaseDatesOffsetCommand = new RelayCommand(() => ChangeDatesOffset(-1));
+            IncreaseDatesOffsetCommand = new RelayCommand(() => ChangeDatesOffset(1));
 
             State = StateType.Idle;
 
-            _deviceManager.DownloadCompleted += Downloader_DownloadCompleted;
-            _downloader.DownloadStarted += Downloader_DownloadStarted;
-            _downloader.DownloadError += Downloader_DownloadError;
-            _downloader.DownloadsCompleted += Downloader_DownloadsCompleted;
-
-            EndDateTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-            StartDateTime = EndDateTime.AddDays(-1);
+            DatesOffsetString = App.Settings.StartDatesOffset.ToString();
+            StartDateTime = DateTime.Now.Date.AddDays(-DatesOffset);
+            EndDateTime = DateTime.Now.Date.AddDays(-DatesOffset + 1);
             StatusBarInfo = "Ready";
         }
 
@@ -68,10 +63,31 @@ namespace QSeeView
         public ICommand PlayCommand { get; }
         public ICommand SettingsCommand { get; }
         public ICommand LiveViewCommand { get; }
+        public ICommand DecreaseDatesOffsetCommand { get; }
+        public ICommand IncreaseDatesOffsetCommand { get; }
 
-        public DateTime StartDateTime { get; set; }
-        public DateTime EndDateTime { get; set; }
         public ObservableCollection<string> DownloadErrors { get; private set; }
+        public int TotalDownloadCount { get; set; }
+
+        public DateTime StartDateTime
+        {
+            get => _startDateTime;
+            set
+            {
+                _startDateTime = value;
+                OnPropertyChanged(nameof(StartDateTime));
+            }
+        }
+
+        public DateTime EndDateTime
+        {
+            get => _endDateTime;
+            set
+            {
+                _endDateTime = value;
+                OnPropertyChanged(nameof(EndDateTime));
+            }
+        }
 
         public IList<RecordFileInfoModel> Records
         {
@@ -179,6 +195,23 @@ namespace QSeeView
             }
         }
 
+        public string DatesOffsetString
+        {
+            get => _datesOffsetString;
+            set
+            {
+                var isValid = int.TryParse(value, out var datesOffset);
+                if (isValid && datesOffset >= 0)
+                {
+                    _datesOffsetString = value;
+                    OnPropertyChanged(nameof(DatesOffsetString));
+                    DatesOffset = datesOffset;
+                    OnDatesOffsetChanged();
+                }
+            }
+        }
+        private int DatesOffset { get; set; }
+
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         /// <summary>
@@ -186,22 +219,10 @@ namespace QSeeView
         /// </summary>
         private void OnDownloadOrStop()
         {
-            if (_downloader.IsDownloading)
-            {
-                _downloader.StopDownload();
-                State = StateType.Idle;
-            }
+            if (IsIdle)
+                StartDownload?.Invoke(this, EventArgs.Empty);
             else
-            {
-                Records.ToList().ForEach(record => record.ResetProgress());
-
-                _downloader.PendingDownloads = Records.Where(record => record.IsSelected).ToList();
-                if (_downloader.PendingDownloads.Any())
-                {
-                    State = StateType.Running;
-                    _totalDownloadCount = _downloader.PendingDownloads.Count();
-                }
-            }
+                StopDownload?.Invoke(this, EventArgs.Empty);
         }
         private bool IsDownloadCommandAvailable()
         {
@@ -221,38 +242,18 @@ namespace QSeeView
         }
 
         /// <summary>
-        /// Callback when a single download is completed
+        /// Called when the dates offset has changed
         /// </summary>
-        private void Downloader_DownloadCompleted(object sender, string errorMessage)
+        private void OnDatesOffsetChanged()
         {
-            TaskbarProgressValue = 1.0 - (_downloader.PendingDownloads.Count() / (double)_totalDownloadCount);
-
-            if (!string.IsNullOrEmpty(errorMessage))
-            {
-                DownloadErrors.Add($"{_deviceManager.DownloadRecord} - {errorMessage}");
-                IsErrorSectionVisible = true;
-            }
+            StartDateTime = DateTime.Now.AddDays(-DatesOffset).Date;
+            EndDateTime = DateTime.Now.AddDays(-DatesOffset+ 1).Date;
         }
 
-        /// <summary>
-        /// Callback when all downloads are completed
-        /// </summary>
-        private void Downloader_DownloadsCompleted(object sender, EventArgs e)
+        private void ChangeDatesOffset(int delta)
         {
-            State = StateType.Idle;
-            StatusBarInfo = "Ready";
-            TaskbarProgressValue = 0;
-        }
-
-        private void Downloader_DownloadStarted(object sender, RecordFileInfoModel record)
-        {
-            StatusBarInfo = $"Downloading {record} ({_downloader.PendingDownloads.Count} remaining)";
-        }
-
-        private void Downloader_DownloadError(object sender, string message)
-        {
-            DownloadErrors.Add(message);
-            IsErrorSectionVisible = true;
+            if (DatesOffset + delta >= 0)
+                DatesOffsetString = (DatesOffset + delta).ToString();
         }
     }
 }

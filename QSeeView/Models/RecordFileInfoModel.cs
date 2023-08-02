@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace QSeeView.Models
 {
-    public class RecordFileInfoModel : INotifyPropertyChanged
+    public sealed class RecordFileInfoModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 

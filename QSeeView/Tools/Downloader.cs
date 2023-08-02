@@ -92,7 +92,7 @@ namespace QSeeView.Tools
         private void StartConverter(RecordFileInfoModel recordFileInfo)
         {
             var process = new Process();
-            process.StartInfo.FileName = $"{Directory.GetCurrentDirectory()}\\ffmpeg.exe";
+            process.StartInfo.FileName = App.Settings.FfmpegPath;
             //process.StartInfo.Arguments = $"-y -r 24 -i \"{DownloadFolder}\\{recordFileInfo.FileName}.dav\" -preset fast -b:v 1000k -c libx264 \"{DownloadFolder}\\{recordFileInfo.FileName}.avi\"";
             process.StartInfo.Arguments = $"-y -f dhav -i \"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.dav\" -vcodec copy \"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.avi\"";
             process.StartInfo.UseShellExecute = true;

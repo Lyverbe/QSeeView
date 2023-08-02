@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 Bkp.bat
+_SDK/Demos
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

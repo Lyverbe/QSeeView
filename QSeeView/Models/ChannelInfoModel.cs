@@ -3,7 +3,7 @@
 namespace QSeeView.Tools.Models
 {
     [DataContract]
-    public class ChannelInfoModel
+    public sealed class ChannelInfoModel
     {
         public ChannelInfoModel(int channelId, string name, bool isLandscape)
         {

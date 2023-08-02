@@ -28,7 +28,7 @@
                 <MenuItem Header="Live view..." Command="{Binding LiveViewCommand}" InputGestureText="Ctrl+L" />
             </MenuItem>
         </Menu>
-        
+
         <StatusBar DockPanel.Dock="Bottom" Margin="0,5,0,0">
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusBarInfo}" />
@@ -40,12 +40,29 @@
                 <DockPanel Margin="2">
                     <Button DockPanel.Dock="Right" Content="Query" Margin="10,0,0,0" Command="{Binding QueryCommand}" />
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Start " VerticalAlignment="Center" />
-                        <DatePicker SelectedDate="{Binding StartDateTime}" Width="250" SelectedDateFormat="Long" />
-                        <TextBlock Text="End " VerticalAlignment="Center" Margin="10,0,0,0" />
-                        <DatePicker SelectedDate="{Binding EndDateTime}" Width="250" SelectedDateFormat="Long" />
+                        <StackPanel.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                            </Style>
+                        </StackPanel.Resources>
+                        <TextBlock Text="Start " />
+                        <DatePicker SelectedDate="{Binding StartDateTime}" Width="250" SelectedDateFormat="Long" BorderThickness="0" />
+                        <TextBlock Text="End " Margin="10,0,0,0" />
+                        <DatePicker SelectedDate="{Binding EndDateTime}" Width="250" SelectedDateFormat="Long" BorderThickness="0" />
+
+                        <TextBlock Text="Offset " Margin="5,0,0,0" />
+                        <TextBox x:Name="DatesOffsetTextBox" Text="{Binding DatesOffsetString, UpdateSourceTrigger=PropertyChanged}" Width="30" VerticalAlignment="Center" />
+                        <Button Height="{Binding ActualHeight, ElementName=DatesOffsetTextBox}" Width="15" Padding="0"
+                                Command="{Binding DecreaseDatesOffsetCommand}">
+                            <Path Fill="Black" Data="M0,0 h6 l-3,3 l-3,-3z" />
+                        </Button>
+                        <Button Height="{Binding ActualHeight, ElementName=DatesOffsetTextBox}" Width="15" Padding="0"
+                                Command="{Binding IncreaseDatesOffsetCommand}">
+                            <Path Fill="Black" Data="M0,3 h6 l-3,-3 l-3,3z" />
+                        </Button>
+
                         <CheckBox Content="Ignore night files" IsChecked="{Binding Settings.IsQueryIgnoringNightFiles, Source={x:Static Application.Current}}"
-                                  Margin="5,0,0,0" VerticalAlignment="Center" />
+                                  Margin="10,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
                 </DockPanel>
             </GroupBox>
@@ -103,7 +120,7 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Padding="0" Width="20" Height="16" Command="{Binding DataContext.PlayCommand, ElementName=AppWindow}"
-                                            CommandParameter="{Binding}">
+                                            CommandParameter="{Binding}" IsEnabled="{Binding DataContext.IsIdle, ElementName=AppWindow}">
                                         <Path Stroke="Black" Fill="Black" Data="M2,2 l3,3 l-3,3z" />
                                     </Button>
                                 </DataTemplate>

@@ -20,21 +20,39 @@
             <CheckBox Content="Automatic login" IsChecked="{Binding IsAutomaticLogin}" />
             <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
             <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
+            <CheckBox Content="Reset playback speed when changing file" IsChecked="{Binding IsResettingPlaybackSpeed}" />
 
-            <DockPanel Margin="0,5,0,0">
-                <TextBlock DockPanel.Dock="Left" Text="Download folder " VerticalAlignment="Center" />
-                <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseDownloadFolderCommand}" ToolTip="Set download folder" />
-                <TextBox Text="{Binding DownloadFolder}" />
-            </DockPanel>
+            <Grid Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
 
-            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                <TextBlock Text="Night files are between " />
-                <TextBox Text="{Binding NightFilesStartHour}" Width="20" />
-                <TextBlock Text="h00 and " />
-                <TextBox Text="{Binding NightFilesEndHour}" Width="20" />
-                <TextBlock Text="h00" />
-            </StackPanel>
+                <TextBlock Text="Download folder " VerticalAlignment="Center" />
+                <DockPanel Grid.Column="1">
+                    <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseDownloadFolderCommand}" />
+                    <TextBox Text="{Binding DownloadFolder}" />
+                </DockPanel>
 
+                <TextBlock Grid.Row="1" Text="Night files " />
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                    <TextBlock Text="Between " />
+                    <TextBox Text="{Binding NightFilesStartHour}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                    <TextBlock Text="h00 and " />
+                    <TextBox Text="{Binding NightFilesEndHour}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                    <TextBlock Text="h00" />
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" Text="Start dates offset " />
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding StartDatesOffset}" Width="25" HorizontalAlignment="Left"
+                         PreviewTextInput="IntTextBox_PreviewTextInput"/>
+            </Grid>
+           
             <GroupBox Header="Channels" Margin="0,5,0,0">
                 <StackPanel Margin="5">
                     <TextBlock Text="If a channel is not used, leave its name blank." TextWrapping="Wrap" />
@@ -56,6 +74,12 @@
                     </ScrollViewer>
                 </StackPanel>
             </GroupBox>
+
+            <DockPanel Margin="0,5,0,0">
+                <TextBlock Text="Path to FFMPEG " VerticalAlignment="Center" />
+                <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseFfmpegPathCommand}" />
+                <TextBox Text="{Binding FfmpegPath}" />
+            </DockPanel>
         </StackPanel>
     </DockPanel>
 </Window>

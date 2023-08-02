@@ -47,9 +47,15 @@ namespace QSeeView.Tools
         [DataMember]
         public bool IsAutoQueryAtStartup { get; set; }
         [DataMember]
+        public bool IsResettingPlaybackSpeed { get; set; }
+        [DataMember]
         public int NightFilesStartHour { get; set; }
         [DataMember]
         public int NightFilesEndHour { get; set; }
+        [DataMember]
+        public string FfmpegPath { get; set; }
+        [DataMember]
+        public int StartDatesOffset { get; set; }
 
         private void InitializeChannelsInfo(int channelsCount)
         {

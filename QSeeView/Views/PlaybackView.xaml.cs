@@ -30,6 +30,8 @@ namespace QSeeView.Views
             _records = records;
             _playIndex = playIndex;
 
+            _currentSpeed = 1.0;
+
             _viewModel = new PlaybackViewModel();
             DataContext = _viewModel;
 
@@ -79,13 +81,17 @@ namespace QSeeView.Views
 
         private void InitializePlayback()
         {
-            _currentSpeed = 1.0;
             _viewModel.IsLandscape = App.Settings.ChannelsInfo[(int)_records[_playIndex].Channel].IsLandscape;
             _viewModel.RefreshPlaybackImageSize();
 
-            UpdateTitle();
             InitializeSlider();
             StartPlayback(_records[_playIndex].Source.starttime);
+
+            if (App.Settings.IsResettingPlaybackSpeed)
+                _currentSpeed = 1.0;
+            else
+                ResumeSpeed();
+            UpdateTitle();
         }
 
         private void StartPlayback(NET_TIME startTime)
@@ -225,6 +231,21 @@ namespace QSeeView.Views
                     _viewModel.PlaybackSliderMinimum = currentTick.Value;
 
                 _viewModel.PlaybackSliderValue = currentTick.Value;
+            }
+        }
+
+        private void ResumeSpeed()
+        {
+            var catchupSpeed = 1.0;
+            while (_currentSpeed > catchupSpeed)
+            {
+                _deviceManager.PlaybackControl(_viewModel.PlaybackID, PlayBackType.Fast);
+                catchupSpeed *= 2;
+            }
+            while (_currentSpeed < catchupSpeed)
+            {
+                _deviceManager.PlaybackControl(_viewModel.PlaybackID, PlayBackType.Slow);
+                catchupSpeed /= 2;
             }
         }
     }

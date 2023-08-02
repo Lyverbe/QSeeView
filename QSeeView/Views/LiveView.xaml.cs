@@ -1,5 +1,4 @@
-﻿using NetSDKCS;
-using QSeeView.Tools;
+﻿using QSeeView.Tools;
 using QSeeView.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using System.Windows.Interop;
 using System.Windows.Media;
 
 namespace QSeeView.Views
@@ -18,6 +16,11 @@ namespace QSeeView.Views
 
         private IDeviceManager _deviceManager;
         private IDictionary<int, IntPtr> _realPlayIds;
+        private PictureBox _originalZoomedPictureBox;
+        private WindowsFormsHost _zoomedHost;
+        private System.Drawing.Point _lastMouseLocation;
+        private bool _isDragging;
+        private Timer _updatePictureBoxSizeTimer;
 
         public LiveView(IDeviceManager deviceManager)
         {
@@ -28,6 +31,10 @@ namespace QSeeView.Views
 
             _viewModel = new LiveViewModel(deviceManager.ChannelsCount);
             DataContext = _viewModel;
+
+            _updatePictureBoxSizeTimer = new Timer();
+            _updatePictureBoxSizeTimer.Interval = 250;
+            _updatePictureBoxSizeTimer.Tick += UpdatePictureBoxSizeTimer_Tick;
 
             ContentRendered += LiveView_ContentRendered;
         }
@@ -40,33 +47,123 @@ namespace QSeeView.Views
 
         private void LiveView_ContentRendered(object sender, EventArgs e)
         {
-            _viewModel.LiveMonitors.ToList().ForEach(monitor => StartChannel(monitor.ChannelId));
+            foreach (var liveMonitor in _viewModel.LiveMonitors)
+            {
+                var instanceCount = liveMonitor.ChannelId;
+                var control = FindFrameworkElement<WindowsFormsHost>(this, ref instanceCount);
+                if (control != null)
+                {
+                    liveMonitor.Host = control;
+                    var pictureBox = control.Child as PictureBox;
+                    _realPlayIds[liveMonitor.ChannelId] = _deviceManager.StartLiveView(liveMonitor.ChannelId, pictureBox.Handle);
+                    liveMonitor.DisplayOriginalSize = new Size(pictureBox.Width, pictureBox.Height);
+
+                    pictureBox.MouseDown += PictureBox_MouseDown;
+                    pictureBox.MouseUp += PictureBox_MouseUp;
+                    pictureBox.MouseMove += PictureBox_MouseMove;
+                    pictureBox.MouseWheel += PictureBox_MouseWheel;
+                }
+            }
         }
 
-        private void StartChannel(int channelId)
-        {
-            var instanceCount = channelId;
-            var pictureBox = FindPictureBox(this, ref instanceCount);
-            if (pictureBox != null)
-                _realPlayIds[channelId] = _deviceManager.StartLiveView(channelId, pictureBox.Handle);
-        }
-
-        public static PictureBox FindPictureBox(DependencyObject dependencyObj, ref int instanceCount)
+        public static T FindFrameworkElement<T>(DependencyObject dependencyObj, ref int instanceCount) where T : FrameworkElement
         {
             if (dependencyObj != null)
             {
                 for (var childId = 0; childId < VisualTreeHelper.GetChildrenCount(dependencyObj); childId++)
                 {
                     var child = VisualTreeHelper.GetChild(dependencyObj, childId);
-                    if (child != null && child is WindowsFormsHost && instanceCount-- == 0)
-                        return ((WindowsFormsHost)child).Child as PictureBox;
+                    if (child != null && child is T && instanceCount-- == 0)
+                        return child as T;
 
-                    var pictureBox = FindPictureBox(child, ref instanceCount);
-                    if (pictureBox != null)
-                        return pictureBox;
+                    var control = FindFrameworkElement<T>(child, ref instanceCount);
+                    if (control != null)
+                        return control;
                 }
             }
             return null;
+        }
+
+        private void PictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            _lastMouseLocation = Control.MousePosition;
+        }
+
+        private void PictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                var liveMonitor = _viewModel.LiveMonitors.FirstOrDefault(monitor => monitor.Host.Child == sender);
+                if (liveMonitor != null && liveMonitor.ZoomLevel > 0)
+                {
+                    var mouseLocationDelta = new Point(Control.MousePosition.X - _lastMouseLocation.X, Control.MousePosition.Y - _lastMouseLocation.Y);
+                    liveMonitor.OffsetScroll(mouseLocationDelta);
+                }
+
+                _isDragging = true;
+            }
+
+            _lastMouseLocation = Control.MousePosition;
+        }
+
+        private void PictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (_isDragging)
+            {
+                _isDragging = false;
+                return;
+            }
+
+            if (_viewModel.ViewRowsCount == 1 && _viewModel.ViewColumnsCount == 1)
+            {
+                // Zoom out
+                _viewModel.MaximizeRowsColumnsCount(_deviceManager.ChannelsCount);
+
+                _zoomedHost.Child = _viewModel.LiveMonitors.First().Host.Child;
+                _viewModel.LiveMonitors.First().Host.Child = _originalZoomedPictureBox;
+            }
+            else
+            {
+                // Zoom in
+                _zoomedHost = _viewModel.LiveMonitors.FirstOrDefault(monitor => monitor.Host.Child == sender)?.Host;
+                _originalZoomedPictureBox = _viewModel.LiveMonitors.First()?.Host.Child as PictureBox;
+                if (_zoomedHost != null && _originalZoomedPictureBox != null)
+                {
+                    _viewModel.ViewRowsCount = 1;
+                    _viewModel.ViewColumnsCount = 1;
+
+                    _viewModel.LiveMonitors.First().Host.Child = sender as PictureBox;
+                }
+            }
+
+            _viewModel.LiveMonitors.First().ZoomLevel = 0;
+
+            // Picture box size has changed and we need to update its original size in the live monitor model
+            // but UI didn't have time to change it yet.  Do it after UI has refreshed the controls.
+            _updatePictureBoxSizeTimer.Start();
+        }
+
+        private void PictureBox_MouseWheel(object sender, MouseEventArgs e)
+        {
+            var liveMonitor = _viewModel.LiveMonitors.FirstOrDefault(monitor => monitor.Host.Child == sender);
+            if (liveMonitor.ZoomLevel + e.Delta < 0)
+                liveMonitor.ZoomLevel = 0;
+            else if (liveMonitor.ZoomLevel + e.Delta > liveMonitor.ZoomLevelMaximum)
+                liveMonitor.ZoomLevel = liveMonitor.ZoomLevelMaximum;
+            else
+                liveMonitor.ZoomLevel += e.Delta;
+        }
+
+        private void UpdatePictureBoxSizeTimer_Tick(object sender, EventArgs e)
+        {
+            _updatePictureBoxSizeTimer.Stop();
+
+            var liveMonitor = _viewModel.LiveMonitors.FirstOrDefault(monitor => monitor.Host == _zoomedHost);
+            if (liveMonitor != null)
+            {
+                var pictureBox = liveMonitor.Host.Child as PictureBox;
+                liveMonitor.DisplayOriginalSize = new Size(pictureBox.Width, pictureBox.Height);
+            }
         }
     }
 }

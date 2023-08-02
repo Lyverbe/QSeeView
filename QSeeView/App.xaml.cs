@@ -2,8 +2,10 @@
 using QSeeView.Views;
 using System;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Windows;
+using System.Windows.Input;
 
 namespace QSeeView
 {
@@ -74,6 +76,16 @@ namespace QSeeView
                 }
             }
             catch { }
+        }
+
+        public static void IntTextBox_PreviewTextInput(TextCompositionEventArgs e)
+        {
+            if (e.Text.Length > 0)
+            {
+                var character = e.Text[0];
+                if (!"0123456789".Contains(character))
+                    e.Handled = true;
+            }
         }
     }
 }

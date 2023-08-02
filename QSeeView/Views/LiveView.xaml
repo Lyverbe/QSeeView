@@ -5,6 +5,10 @@
         WindowStartupLocation="CenterOwner" WindowState="Maximized" 
         Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
         Title="Live" Height="450" Width="800" MinHeight="200" MinWidth="200">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    
     <ItemsControl ItemsSource="{Binding LiveMonitors}">
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -13,11 +17,19 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <Viewbox Margin="2">
-                    <WindowsFormsHost Width="{Binding Width}" Height="{Binding Height}">
-                        <wf:PictureBox x:Name="RealPlayPictureBox" />
-                    </WindowsFormsHost>
-                </Viewbox>
+                <DockPanel>
+                    <Slider DockPanel.Dock="Bottom" Width="300" HorizontalAlignment="Center"
+                            Minimum="0" Maximum="{Binding ZoomLevelMaximum}" Value="{Binding ZoomLevel}" />
+                    <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
+                               Minimum="0" Maximum="{Binding HorizontalScrollMaximum}" Value="{Binding HorizontalScrollValue}" />
+                    <ScrollBar DockPanel.Dock="Right" Orientation="Vertical" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
+                               Minimum="0" Maximum="{Binding VerticalScrollMaximum}" Value="{Binding VerticalScrollValue}" />
+                    <Viewbox Margin="2">
+                        <WindowsFormsHost Width="{Binding Width}" Height="{Binding Height}">
+                            <wf:PictureBox />
+                        </WindowsFormsHost>
+                    </Viewbox>
+                </DockPanel>
             </DataTemplate>
         </ItemsControl.ItemTemplate>
     </ItemsControl>
