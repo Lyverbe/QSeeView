@@ -1,0 +1,28 @@
+﻿<Window x:Class="QSeeView.Views.FilterChannelsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" ResizeMode="NoResize"
+        Background="{StaticResource BackgroundColor}"
+        Height="150" Width="100">
+    <Border BorderThickness="1" BorderBrush="Gray">
+        <DockPanel Margin="2">
+            <Button DockPanel.Dock="Bottom" Command="{Binding CloseCommand}" HorizontalAlignment="Right"
+                    Width="12" Height="12" Padding="0" Margin="2,0,0,0" ToolTip="Cancel">
+                <Path Stroke="Black" Data="M0,0 l6,6 M0,6 l6,-6" />
+            </Button>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Channels}" Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox IsChecked="{Binding IsVisibleInList}" />
+                                <TextBlock Text="{Binding Name}" Margin="5,0,0,0" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</Window>

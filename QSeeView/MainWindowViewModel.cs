@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace QSeeView
@@ -18,6 +19,7 @@ namespace QSeeView
         public event EventHandler ShowLiveView;
         public event EventHandler StartDownload;
         public event EventHandler StopDownload;
+        public event EventHandler<Button> FilterChannels;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -47,6 +49,7 @@ namespace QSeeView
             LiveViewCommand = new RelayCommand(() => ShowLiveView?.Invoke(this, EventArgs.Empty));
             DecreaseDatesOffsetCommand = new RelayCommand(() => ChangeDatesOffset(-1));
             IncreaseDatesOffsetCommand = new RelayCommand(() => ChangeDatesOffset(1));
+            FilterChannelsCommand = new RelayCommand<Button>((button) => FilterChannels?.Invoke(this, button));
 
             State = StateType.Idle;
 
@@ -65,6 +68,7 @@ namespace QSeeView
         public ICommand LiveViewCommand { get; }
         public ICommand DecreaseDatesOffsetCommand { get; }
         public ICommand IncreaseDatesOffsetCommand { get; }
+        public ICommand FilterChannelsCommand { get; }
 
         public ObservableCollection<string> DownloadErrors { get; private set; }
         public int TotalDownloadCount { get; set; }
@@ -214,9 +218,6 @@ namespace QSeeView
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        /// <summary>
-        /// Callback when the Download/Stop button has been clicked
-        /// </summary>
         private void OnDownloadOrStop()
         {
             if (IsIdle)
@@ -229,9 +230,6 @@ namespace QSeeView
             return !string.IsNullOrEmpty(App.Settings.DownloadFolder) && Records != null && Records.Any(record => record.IsSelected);
         }
 
-        /// <summary>
-        /// Callback when the "[Un]Select highlighted" button has been clicked
-        /// </summary>
         private void OnToggleSelect(ObservableCollection<object> highlightedItems)
         {
             highlightedItems.ToList().ForEach(record => (record as RecordFileInfoModel).IsSelected = !(record as RecordFileInfoModel).IsSelected);
@@ -241,9 +239,6 @@ namespace QSeeView
             return (Records != null && Records.Any());
         }
 
-        /// <summary>
-        /// Called when the dates offset has changed
-        /// </summary>
         private void OnDatesOffsetChanged()
         {
             StartDateTime = DateTime.Now.AddDays(-DatesOffset).Date;

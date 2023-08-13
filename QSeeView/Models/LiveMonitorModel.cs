@@ -1,4 +1,9 @@
-﻿using System.ComponentModel;
+﻿using QSeeView.Tools;
+using QSeeView.Tools.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
@@ -8,31 +13,72 @@ namespace QSeeView.Models
     public sealed class LiveMonitorModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler<ChannelInfoModel> ChannelChanging;
 
+        private IDeviceManager _deviceManager;
         private double _zoomLevel;
         private bool _showScrollBars;
         private double _horizontalScrollValue;
         private double _verticalScrollValue;
         private double _horizontalScrollMaximum;
         private double _verticalScrollMaximum;
+        private ChannelInfoModel _selectedChannel;
+        private IntPtr _playId;
+        private double _width;
+        private double _height;
+        private bool _isOnline;
 
-        public LiveMonitorModel(int channelId)
+        public LiveMonitorModel(IDeviceManager deviceManager, int channelId)
         {
-            ChannelId = channelId;
+            _deviceManager = deviceManager;
 
-            var channelInfo = App.Settings.ChannelsInfo[ChannelId];
-            Width = channelInfo.IsLandscape ? App.HDSize.Width : App.HDSize.Height;
-            Height = channelInfo.IsLandscape ? App.HDSize.Height : App.HDSize.Width;
+            var channels = new List<ChannelInfoModel>();
+            channels.Add(new ChannelInfoModel()); // offline channel
+            channels.AddRange(App.Settings.ChannelsInfo.Where(channelInfo => channelInfo.IsOnline));
+            Channels = channels;
+
+            if (channelId < App.Settings.ChannelsInfo.Count && App.Settings.ChannelsInfo[channelId].IsOnline)
+                SelectedChannel = App.Settings.ChannelsInfo[channelId];
+            else
+                SelectedChannel = Channels.FirstOrDefault(channel => !channel.IsOnline);
         }
 
         public double ZoomLevelMaximum => 2000;
 
         public WindowsFormsHost Host { get; set; }
-        public int ChannelId { get; }
-        public double Width { get; }
-        public double Height { get; }
-
+        public IEnumerable<ChannelInfoModel> Channels { get; }
         public Size DisplayOriginalSize { get; set; }
+
+        public bool IsOnline
+        {
+            get => _isOnline;
+            set
+            {
+                _isOnline = value;
+                OnPropertyChanged(nameof(IsOnline));
+            }
+        }
+
+        public double Width
+        {
+            get => _width;
+            private set
+            {
+                _width = value;
+                OnPropertyChanged(nameof(Width));
+            }
+        }
+
+        public double Height
+        {
+            get => _height;
+            private set
+            {
+                _height = value;
+                OnPropertyChanged(nameof(Height));
+            }
+        }
+
         public double ZoomLevel
         {
             get => _zoomLevel;
@@ -93,6 +139,26 @@ namespace QSeeView.Models
                 _verticalScrollValue = value;
                 OnPropertyChanged(nameof(VerticalScrollValue));
                 OnScrollChanged();
+            }
+        }
+
+        public ChannelInfoModel SelectedChannel
+        {
+            get => _selectedChannel;
+            set
+            {
+                // Stop current feed
+                ChannelChanging?.Invoke(this, value);
+                if (SelectedChannel != null && SelectedChannel.IsOnline)
+                    StopLiveView();
+
+                _selectedChannel = value;
+                OnPropertyChanged(nameof(SelectedChannel));
+                OnSelectedChannelChanged();
+
+                // Start new feed
+                if (SelectedChannel.IsOnline)
+                    StartLiveView();
             }
         }
 
@@ -161,6 +227,28 @@ namespace QSeeView.Models
                 Y = VerticalScrollMaximum;
 
             return (X, Y);
+        }
+
+        private void OnSelectedChannelChanged()
+        {
+            Width = SelectedChannel.IsLandscape ? App.HDSize.Width : App.HDSize.Height;
+            Height = SelectedChannel.IsLandscape ? App.HDSize.Height : App.HDSize.Width;
+            IsOnline = SelectedChannel.IsOnline;
+        }
+
+        public void StartLiveView()
+        {
+            if (Host?.Child != null)
+                _playId = _deviceManager.StartLiveView(SelectedChannel.ChannelId, (Host.Child as PictureBox).Handle);
+        }
+
+        public void StopLiveView()
+        {
+            if (_playId != IntPtr.Zero)
+            {
+                _deviceManager.StopLiveView(_playId);
+                _playId = IntPtr.Zero;
+            }
         }
     }
 }

@@ -12,6 +12,7 @@ namespace QSeeView
     public partial class App : Application
     {
         public static readonly System.Drawing.Size HDSize = new System.Drawing.Size(1920, 1080);
+        public const string SettingsBackupExtension = ".backup";
 
         private IDeviceManager _deviceManager;
 
@@ -20,11 +21,6 @@ namespace QSeeView
             _deviceManager = new QCW4DeviceManager();
 
             SettingsFileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QSeeViewSettings.xml");
-
-            if (File.Exists(SettingsFileName))
-                LoadSettings();
-            else
-                Settings = new Settings(_deviceManager.ChannelsCount);
         }
 
         private string SettingsFileName { get; set; }
@@ -32,37 +28,76 @@ namespace QSeeView
 
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
-            if (Settings.IsAutomaticLogin)
-                _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
+            LoadSettings(SettingsFileName);
 
-            if (!_deviceManager.IsConnected)
+            if (Settings != null)
             {
-                var view = new LoginView();
-                var isOkClicked = view.ShowDialog();
-                if (isOkClicked == true)
+                if (Settings.IsAutomaticLogin)
                     _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
+
+                if (!_deviceManager.IsConnected)
+                {
+                    var view = new LoginView();
+                    var isOkClicked = view.ShowDialog();
+                    if (isOkClicked == true)
+                        _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
+                }
+
+                if (_deviceManager.IsConnected)
+                    new MainWindow(_deviceManager).ShowDialog();
+                else
+                    MessageBox.Show("Login failed.  Ensure you have the right username and password", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                CreateSettingsBackup();
+                SaveSettings();
             }
-
-            if (_deviceManager.IsConnected)
-                new MainWindow(_deviceManager).ShowDialog();
-            else
-                MessageBox.Show("Login failed.  Ensure you have the right username and password", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
-
-            SaveSettings();
             Shutdown();
         }
 
-        private void LoadSettings()
+        private void LoadSettings(string fileName)
         {
-            try
+            if (File.Exists(fileName))
             {
-                using (var stream = new FileStream(SettingsFileName, FileMode.Open))
+                try
                 {
-                    var serializer = new DataContractSerializer(typeof(Settings));
-                    Settings = (Settings)serializer.ReadObject(stream);
+                    using (var stream = new FileStream(fileName, FileMode.Open))
+                    {
+                        var serializer = new DataContractSerializer(typeof(Settings));
+                        Settings = (Settings)serializer.ReadObject(stream);
+                    }
                 }
+                catch { }
             }
-            catch { }
+
+            if (Settings == null)
+                HandleLoadSettingsFailure();
+        }
+
+        private void HandleLoadSettingsFailure()
+        {
+            var loadFromBackup = false;
+            var backupFileName = SettingsFileName + SettingsBackupExtension;
+            if (File.Exists(backupFileName))
+            {
+                var reply = MessageBox.Show("Failed to load settings.  Do you wish to attempt loading from the backup file?",
+                    "Load settings", MessageBoxButton.YesNoCancel, MessageBoxImage.Error);
+                if (reply == MessageBoxResult.Cancel)
+                    return;
+                loadFromBackup = (reply == MessageBoxResult.Yes);
+            }
+            if (loadFromBackup)
+                LoadSettings(backupFileName);
+            if (Settings == null)
+            {
+                MessageBox.Show("Failed to load settings.  Application will launch with initial settings.", "Load settings");
+                Settings = new Settings(_deviceManager.ChannelsCount);
+            }
+        }
+
+        private void CreateSettingsBackup()
+        {
+            if (File.Exists(SettingsFileName))
+                File.Copy(SettingsFileName, SettingsFileName + SettingsBackupExtension, true);
         }
 
         private void SaveSettings()

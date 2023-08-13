@@ -18,13 +18,17 @@
         <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <DockPanel>
-                    <Slider DockPanel.Dock="Bottom" Width="300" HorizontalAlignment="Center"
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+                        <Slider Width="300" HorizontalAlignment="Center" IsEnabled="{Binding IsOnline}"
                             Minimum="0" Maximum="{Binding ZoomLevelMaximum}" Value="{Binding ZoomLevel}" />
+                        <TextBlock Text="Channel " VerticalAlignment="Center" Margin="10,0,0,0" />
+                        <ComboBox Width="100" ItemsSource="{Binding Channels}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedChannel}" />
+                    </StackPanel>
                     <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
                                Minimum="0" Maximum="{Binding HorizontalScrollMaximum}" Value="{Binding HorizontalScrollValue}" />
                     <ScrollBar DockPanel.Dock="Right" Orientation="Vertical" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
                                Minimum="0" Maximum="{Binding VerticalScrollMaximum}" Value="{Binding VerticalScrollValue}" />
-                    <Viewbox Margin="2">
+                    <Viewbox Margin="2" Visibility="{Binding IsOnline, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <WindowsFormsHost Width="{Binding Width}" Height="{Binding Height}">
                             <wf:PictureBox />
                         </WindowsFormsHost>

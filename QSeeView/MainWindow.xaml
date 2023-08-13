@@ -81,6 +81,11 @@
 
             <ListView x:Name="RecordsList" ItemsSource="{Binding Records}" Margin="0,5,0,0"
                       Background="{Binding Background, ElementName=AppWindow}" Foreground="{Binding Foreground, ElementName=AppWindow}">
+                <ListView.Resources>
+                    <Style x:Key="StretchedHeaderStyle" TargetType="GridViewColumnHeader">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    </Style>
+                </ListView.Resources>
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Style.Triggers>
@@ -107,8 +112,17 @@
                         </GridViewColumn>
                         <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ID}" Width="50" />
                         <GridViewColumn Header="Start" DisplayMemberBinding="{Binding StartTimeString}" Width="200" />
-                        <!--<GridViewColumn Header="End" DisplayMemberBinding="{Binding EndTimeString}" Width="200" />-->
-                        <GridViewColumn Header="Channel" DisplayMemberBinding="{Binding ChannelName}" Width="100" />
+                        <GridViewColumn DisplayMemberBinding="{Binding ChannelName}" Width="100" HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
+                            <GridViewColumn.Header>
+                                <DockPanel>
+                                    <Button x:Name="FilterChannelsButton" DockPanel.Dock="Right" Width="12" Height="12" Padding="0" Margin="0,0,3,0"
+                                            Command="{Binding FilterChannelsCommand}" CommandParameter="{Binding ElementName=FilterChannelsButton}">
+                                        <Path Fill="Black" Data="M0,0 h8 l-3,3 v3 h-2 v-3 l-4,-4z" />
+                                    </Button>
+                                    <TextBlock Text="Channel" HorizontalAlignment="Center" />
+                                </DockPanel>
+                            </GridViewColumn.Header>
+                        </GridViewColumn>
                         <GridViewColumn Header="Length" Width="70">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>

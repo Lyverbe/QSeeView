@@ -38,6 +38,8 @@ namespace QSeeView.Views
                 App.Settings.FfmpegPath = _viewModel.FfmpegPath;
                 App.Settings.StartDatesOffset = _viewModel.StartDatesOffset;
                 App.Settings.IsResettingPlaybackSpeed = _viewModel.IsResettingPlaybackSpeed;
+                App.Settings.FileNamesPattern = _viewModel.FileNamesPattern;
+                App.Settings.LiveViewSize = _viewModel.LiveViewSize;
             }
 
             DialogResult = isOkClicked;

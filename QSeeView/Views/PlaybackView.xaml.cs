@@ -96,7 +96,7 @@ namespace QSeeView.Views
 
         private void StartPlayback(NET_TIME startTime)
         {
-            _viewModel.PlaybackID = _deviceManager.StartPlayback(startTime, _records[_playIndex].Source.endtime, _records[_playIndex].Channel, _pictureBox.Handle);
+            _viewModel.PlaybackID = _deviceManager.StartPlayback(startTime, _records[_playIndex].Source.endtime, (uint)_records[_playIndex].Channel, _pictureBox.Handle);
             _viewModel.Start();
         }
 

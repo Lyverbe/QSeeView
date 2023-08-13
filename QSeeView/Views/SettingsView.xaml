@@ -5,9 +5,13 @@
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
-        Title="Settings" Width="400" SizeToContent="Height">
+        Title="Settings" Width="400" Height="300">
     <Window.Resources>
         <converters:ChannelIdConverter x:Key="ChannelIdConverter" />
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource ForegroundColor}" />
+        </Style>
     </Window.Resources>
     
     <DockPanel Margin="10">
@@ -16,55 +20,69 @@
             <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5,0,0,0" />
         </UniformGrid>
 
-        <StackPanel>
-            <CheckBox Content="Automatic login" IsChecked="{Binding IsAutomaticLogin}" />
-            <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
-            <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
-            <CheckBox Content="Reset playback speed when changing file" IsChecked="{Binding IsResettingPlaybackSpeed}" />
-
-            <Grid Margin="0,5,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-
-                <TextBlock Text="Download folder " VerticalAlignment="Center" />
-                <DockPanel Grid.Column="1">
-                    <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseDownloadFolderCommand}" />
-                    <TextBox Text="{Binding DownloadFolder}" />
-                </DockPanel>
-
-                <TextBlock Grid.Row="1" Text="Night files " />
-                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock Text="Between " />
-                    <TextBox Text="{Binding NightFilesStartHour}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
-                    <TextBlock Text="h00 and " />
-                    <TextBox Text="{Binding NightFilesEndHour}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
-                    <TextBlock Text="h00" />
-                </StackPanel>
-
-                <TextBlock Grid.Row="2" Text="Start dates offset " />
-                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding StartDatesOffset}" Width="25" HorizontalAlignment="Left"
-                         PreviewTextInput="IntTextBox_PreviewTextInput"/>
-            </Grid>
-           
-            <GroupBox Header="Channels" Margin="0,5,0,0">
+        <TabControl Background="{StaticResource BackgroundColor}">
+            <TabItem Header="Miscellaneous">
                 <StackPanel Margin="5">
-                    <TextBlock Text="If a channel is not used, leave its name blank." TextWrapping="Wrap" />
+                    <CheckBox Content="Automatic login" IsChecked="{Binding IsAutomaticLogin}" />
+                    <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
+                    <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
+                    <CheckBox Content="Reset playback speed when changing file" IsChecked="{Binding IsResettingPlaybackSpeed}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <TextBlock Text="Live view is " />
+                        <TextBox Text="{Binding LiveViewSize, UpdateSourceTrigger=PropertyChanged}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                        <TextBlock>
+                            <Run Text=" rows by" />
+                            <Run Text="{Binding LiveViewSize}" />
+                            <Run Text="columns" />
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
 
-                    <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding ChannelsInfo}" Margin="0,5,0,0">
+            <TabItem Header="Queries">
+                <StackPanel Margin="5">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Grid.Row="1" Text="Night files are between " />
+                        <TextBox Text="{Binding NightFilesStartHour}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                        <TextBlock Text="h00 and " />
+                        <TextBox Text="{Binding NightFilesEndHour}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                        <TextBlock Text="h00" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                        <TextBlock Text="Default start dates offset is " />
+                        <TextBox Text="{Binding StartDatesOffset}" Width="25" HorizontalAlignment="Left"
+                                 PreviewTextInput="IntTextBox_PreviewTextInput"/>
+                        <TextBlock Text=" days" />
+                    </StackPanel>
+                </StackPanel>
+            </TabItem>
+
+            <TabItem Header="Channels">
+                <DockPanel Margin="5">
+                    <TextBlock DockPanel.Dock="Top" Text="If a channel is not used, leave its name blank." TextWrapping="Wrap" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,5,0,0">
+                        <ItemsControl ItemsSource="{Binding ChannelsInfo}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel Margin="0,1,0,0">
                                         <TextBlock DockPanel.Dock="Left" Text="{Binding ChannelId, Converter={StaticResource ChannelIdConverter}}"
-                                               HorizontalAlignment="Center" MinWidth="15" />
-                                        <CheckBox DockPanel.Dock="Right" IsChecked="{Binding IsLandscape}" HorizontalAlignment="Center" ToolTip="Is landscape" />
+                                                   HorizontalAlignment="Center" MinWidth="15" Foreground="{StaticResource ForegroundColor}" />
+                                        <Button DockPanel.Dock="Right" Command="{Binding SetOrientationCommand}" Width="15" Padding="0" ToolTip="Orientation">
+                                            <Path Stroke="Black">
+                                                <Path.Style>
+                                                    <Style TargetType="Path">
+                                                        <Setter Property="Data" Value="M0,0 v10 h5 v-10 h-5z" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsLandscape}" Value="true">
+                                                                <Setter Property="Data" Value="M0,0 h10 v5 h-10 v-5z" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Path.Style>
+                                            </Path>
+                                        </Button>
 
                                         <TextBox Text="{Binding Name}" Margin="5,0,5,0" VerticalAlignment="Center" MaxLength="25" />
                                     </DockPanel>
@@ -72,14 +90,63 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </ScrollViewer>
-                </StackPanel>
-            </GroupBox>
+                </DockPanel>
+            </TabItem>
 
-            <DockPanel Margin="0,5,0,0">
-                <TextBlock Text="Path to FFMPEG " VerticalAlignment="Center" />
-                <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseFfmpegPathCommand}" />
-                <TextBox Text="{Binding FfmpegPath}" />
-            </DockPanel>
-        </StackPanel>
+            <TabItem Header="Paths">
+                <Grid Margin="5" VerticalAlignment="Top">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Downloads " VerticalAlignment="Center" />
+                    <DockPanel Grid.Column="1">
+                        <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseDownloadFolderCommand}" />
+                        <TextBox Text="{Binding DownloadFolder}" />
+                    </DockPanel>
+
+                    <TextBlock Grid.Row="1" Text="FFMPEG " VerticalAlignment="Center" />
+                    <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,2,0,0">
+                        <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseFfmpegPathCommand}" />
+                        <TextBox Text="{Binding FfmpegPath}" />
+                    </DockPanel>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="File names pattern">
+                <StackPanel Margin="5">
+                    <DockPanel>
+                        <TextBlock Text="Pattern " />
+                        <StackPanel>
+                            <TextBox Text="{Binding FileNamesPattern, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="{Binding FileNamesOutputExample}" FontSize="10" Foreground="WhiteSmoke" />
+                        </StackPanel>
+                    </DockPanel>
+
+                    <TextBlock Text="Tags" TextDecorations="Underline" />
+                    <UniformGrid Columns="2">
+                        <TextBlock Text="%d - Day" />
+                        <TextBlock Text="%D - Day (2 digits)" />
+                        <TextBlock Text="%h - Hour" />
+                        <TextBlock Text="%H - Hour (2 digits)" />
+                        <TextBlock Text="%m - Month" />
+                        <TextBlock Text="%M - Month (2 digits)" />
+                        <TextBlock Text="%n - Minutes" />
+                        <TextBlock Text="%N - Minutes (2 digits)" />
+                        <TextBlock Text="%y - Year" />
+                        <TextBlock Text="%Y - Year (4 digits)" />
+                        <TextBlock Text="%s - Seconds" />
+                        <TextBlock Text="%S - Seconds (2 digits)" />
+                        <TextBlock Text="%c - Channel" />
+                        <TextBlock Text="%C - Channel (2 digits)" />
+                    </UniformGrid>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
     </DockPanel>
 </Window>

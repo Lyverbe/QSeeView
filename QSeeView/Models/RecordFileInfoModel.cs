@@ -1,4 +1,5 @@
 ﻿using NetSDKCS;
+using QSeeView.Tools;
 using System;
 using System.ComponentModel;
 using System.Windows.Media;
@@ -26,7 +27,7 @@ namespace QSeeView.Models
         public string StartTimeString => StartTime.ToString("G");
         public DateTime EndTime => Source.endtime.ToDateTime();
         public string EndTimeString => EndTime.ToString("G");
-        public uint Channel => Source.ch;
+        public int Channel => (int)Source.ch;
         public uint SizeInBytes => Source.size;
         public TimeSpan Length => EndTime - StartTime;
 
@@ -40,18 +41,7 @@ namespace QSeeView.Models
             }
         }
 
-        public string ChannelName
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(App.Settings.ChannelsInfo[(int)Channel].Name))
-                    return Channel.ToString();
-                else
-                    return App.Settings.ChannelsInfo[(int)Channel].Name;
-
-                throw new Exception();
-            }
-        }
+        public string ChannelName => App.Settings.ChannelsInfo[Channel].Name;
 
         public Brush LengthColor
         {
@@ -85,17 +75,22 @@ namespace QSeeView.Models
             }
         }
 
-        public string FileName => ToString() + "_ch" + Channel;
+        public string FileName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(App.Settings.FileNamesPattern))
+                    return $"{StartTime.Year}-{StartTime.Month:00}-{StartTime.Day:00}" +
+                           $"_{StartTime.Hour:00}h{StartTime.Minute:00}m{StartTime.Second:00}" +
+                           "_ch" + Channel;
+                else
+                    return FileNameBuilder.Build(App.Settings.FileNamesPattern, StartTime, Channel);
+            }
+        }
 
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public override string ToString()
-        {
-            return $"{StartTime.Year}-{StartTime.Month:00}-{StartTime.Day:00}" +
-                   $"_{StartTime.Hour:00}h{StartTime.Minute:00}m{StartTime.Second:00}";
         }
 
         public void ResetProgress()

@@ -1,8 +1,8 @@
 ﻿using QSeeView.Models;
+using QSeeView.Tools;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 
 namespace QSeeView.ViewModels
 {
@@ -13,13 +13,17 @@ namespace QSeeView.ViewModels
         private int _viewRowsCount;
         private int _viewColumnsCount;
 
-        public LiveViewModel(int channelsCount)
+        public LiveViewModel(IDeviceManager deviceManager)
         {
             LiveMonitors = new List<LiveMonitorModel>();
-            foreach (var channelInfo in App.Settings.ChannelsInfo.Where(info => !string.IsNullOrEmpty(info.Name)))
-                LiveMonitors.Add(new LiveMonitorModel(channelInfo.ChannelId));
+            //foreach (var channelInfo in App.Settings.ChannelsInfo)
+            //    LiveMonitors.Add(new LiveMonitorModel(deviceManager, channelInfo.ChannelId));
+            for (var channelId = 0; channelId < Math.Pow(App.Settings.LiveViewSize, 2); channelId++)
+            {
+                LiveMonitors.Add(new LiveMonitorModel(deviceManager, channelId));
+            }
 
-            MaximizeRowsColumnsCount(channelsCount);
+            MaximizeRowsColumnsCount();
         }
 
         public int ViewRowsCount
@@ -46,10 +50,10 @@ namespace QSeeView.ViewModels
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-        public void MaximizeRowsColumnsCount(int channelsCount)
+        public void MaximizeRowsColumnsCount()
         {
-            ViewRowsCount = (int)Math.Floor(Math.Sqrt(channelsCount));
-            ViewColumnsCount = channelsCount / ViewRowsCount;
+            ViewRowsCount = (int)Math.Floor(Math.Sqrt(LiveMonitors.Count));
+            ViewColumnsCount = LiveMonitors.Count / ViewRowsCount;
         }
     }
 }

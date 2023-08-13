@@ -6,11 +6,16 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 
 /*
 To-do
-- Quick download single file (button next to 'play')
-- Configure live view (portrait taking 2 cells, etc.)
+- Settings-Channels: Online button
+- Download curreny playback video
+- Start with live view: Don't show main UI and shutdown app when live view closed
+- Open download folder after downloads (settings)
+- Play sound when downloads done (settings)
+- Sort query content
 */
 
 namespace QSeeView
@@ -21,6 +26,9 @@ namespace QSeeView
 
         private IDeviceManager _deviceManager;
         private Downloader _downloader;
+        private FilterChannelsView _filterChannelsView;
+        private Point _filterChannelsViewOffset;
+        private QueryManager _queryManager;
 
         public MainWindow(IDeviceManager deviceManager)
         {
@@ -28,6 +36,7 @@ namespace QSeeView
 
             _deviceManager = deviceManager;
             _downloader = new Downloader(deviceManager);
+            _queryManager = new QueryManager(deviceManager);
 
             _viewModel = new MainWindowViewModel();
             DataContext = _viewModel;
@@ -38,6 +47,7 @@ namespace QSeeView
             _viewModel.ShowLiveView += (s, e) => ShowLiveView();
             _viewModel.StartDownload += ViewModel_StartDownload;
             _viewModel.StopDownload += ViewModel_StopDownload;
+            _viewModel.FilterChannels += ViewModel_FilterChannels;
 
             _deviceManager.DownloadCompleted += DeviceManager_DownloadCompleted;
 
@@ -47,6 +57,7 @@ namespace QSeeView
 
             if (App.Settings.IsAutoQueryAtStartup)
                 ContentRendered += MainWindow_ContentRendered;
+            SubscribeListVisibilityChanged();
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -75,9 +86,18 @@ namespace QSeeView
             view.ShowDialog();
         }
 
+        private void SubscribeListVisibilityChanged()
+        {
+            foreach (var channelInfo in App.Settings.ChannelsInfo)
+                channelInfo.ListVisibilityChanged += (s, e) => Query();
+        }
+
         private void Query()
         {
-            _viewModel.Records = _deviceManager.Query(_viewModel.StartDateTime, _viewModel.EndDateTime, App.Settings.IsQueryIgnoringNightFiles);
+            _queryManager.Run(_viewModel.StartDateTime, _viewModel.EndDateTime);
+            _queryManager.FilterResult();
+            _viewModel.Records = _queryManager.FilteredResult.ToList();
+
             if (_viewModel.Records.Count >= _deviceManager.MaxQueryRecords)
                 MessageBox.Show($"Limit of {_deviceManager.MaxQueryRecords} records has been reached. Some files may be missing.", "Query");
 
@@ -169,6 +189,41 @@ namespace QSeeView
         {
             _viewModel.DownloadErrors.Add(message);
             _viewModel.IsErrorSectionVisible = true;
+        }
+
+        private void ViewModel_FilterChannels(object sender, Button filterChannelButton)
+        {
+            if (_filterChannelsView != null && _filterChannelsView.IsVisible)
+            {
+                _filterChannelsView.Close();
+                return;
+            }
+
+            var mainWindow = Application.Current.MainWindow;
+            var mainWindowLocation = mainWindow.PointToScreen(new Point(0, 0));
+            var buttonScreenLocation = filterChannelButton.PointToScreen(new Point(0, 0));
+            _filterChannelsViewOffset = new Point()
+            {
+                X = buttonScreenLocation.X - mainWindowLocation.X + SystemParameters.ResizeFrameVerticalBorderWidth + 4,
+                Y = buttonScreenLocation.Y - mainWindowLocation.Y + SystemParameters.ResizeFrameHorizontalBorderHeight + SystemParameters.CaptionHeight + filterChannelButton.ActualHeight + 5
+            };
+
+            _filterChannelsView = new FilterChannelsView();
+            _filterChannelsView.Owner = Application.Current.MainWindow;
+            _filterChannelsView.Left = buttonScreenLocation.X;
+            _filterChannelsView.Top = buttonScreenLocation.Y + filterChannelButton.ActualHeight;
+            _filterChannelsView.Show();
+        }
+
+        protected override void OnLocationChanged(EventArgs e)
+        {
+            if (_filterChannelsView != null && _filterChannelsView.IsVisible)
+            {
+                _filterChannelsView.Left = Left + _filterChannelsViewOffset.X;
+                _filterChannelsView.Top = Top + _filterChannelsViewOffset.Y;
+            }
+
+            base.OnLocationChanged(e);
         }
     }
 }

@@ -22,6 +22,10 @@ namespace QSeeView.ViewModels
         private string _downloadFolder;
         private string _ffmpegPath;
         private bool _isResettingPlaybackSpeed;
+        private string _fileNamesPattern;
+        private string _fileNamesOutputExample;
+        private int _liveViewRowsCount;
+        private int _liveViewColumnsCount;
 
         public SettingsViewModel()
         {
@@ -43,6 +47,8 @@ namespace QSeeView.ViewModels
             NightFilesEndHour = App.Settings.NightFilesEndHour;
             FfmpegPath = App.Settings.FfmpegPath;
             StartDatesOffset = App.Settings.StartDatesOffset;
+            FileNamesPattern = App.Settings.FileNamesPattern;
+            LiveViewSize = App.Settings.LiveViewSize;
         }
 
         public ICommand OkCommand { get; }
@@ -112,11 +118,70 @@ namespace QSeeView.ViewModels
             }
         }
 
+        public string FileNamesPattern
+        {
+            get => _fileNamesPattern;
+            set
+            {
+                _fileNamesPattern = value;
+                OnPropertyChanged(nameof(FileNamesPattern));
+                OnFileNamesPatternChanged();
+            }
+        }
+
+        public string FileNamesOutputExample
+        {
+            get => _fileNamesOutputExample;
+            set
+            {
+                _fileNamesOutputExample = value;
+                OnPropertyChanged(nameof(FileNamesOutputExample));
+            }
+        }
+
+        public int LiveViewSize
+        {
+            get => _liveViewRowsCount;
+            set
+            {
+                _liveViewRowsCount = LimitLiveViewGridSize(value);
+                OnPropertyChanged(nameof(LiveViewSize));
+            }
+        }
+
+        public int LiveViewColumnsCount
+        {
+            get => _liveViewColumnsCount;
+            set
+            {
+                _liveViewColumnsCount = LimitLiveViewGridSize(value);
+                OnPropertyChanged(nameof(LiveViewColumnsCount));
+            }
+        }
+
         public int NightFilesStartHour { get; set; }
         public int NightFilesEndHour { get; set; }
 
         public int StartDatesOffset { get; set; }
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        private void OnFileNamesPatternChanged()
+        {
+            if (string.IsNullOrEmpty(FileNamesPattern))
+                FileNamesOutputExample = string.Empty;
+            else
+                FileNamesOutputExample = "Example output: " + FileNameBuilder.Build(FileNamesPattern, DateTime.Now, 0);
+        }
+
+        private int LimitLiveViewGridSize(int value)
+        {
+            if (value < 2)
+                value = 2;
+            else if (value > 8)
+                value = 8;
+
+            return value;
+        }
     }
 }
