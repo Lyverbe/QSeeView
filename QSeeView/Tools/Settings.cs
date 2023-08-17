@@ -56,6 +56,10 @@ namespace QSeeView.Tools
         public string EncodedPassword { get; set; }
         [DataMember]
         public int LiveViewSize { get; set; }
+        [DataMember]
+        public bool IsAutoOpenDownloads { get; set; }
+        [DataMember]
+        public bool DoPlayDownloadsCompleteSound { get; set; }
 
         public string Password { get; set; }
 

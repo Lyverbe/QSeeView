@@ -53,12 +53,12 @@
                         <TextBlock Text="Offset " Margin="5,0,0,0" />
                         <TextBox x:Name="DatesOffsetTextBox" Text="{Binding DatesOffsetString, UpdateSourceTrigger=PropertyChanged}" Width="30" VerticalAlignment="Center" />
                         <Button Height="{Binding ActualHeight, ElementName=DatesOffsetTextBox}" Width="15" Padding="0"
-                                Command="{Binding DecreaseDatesOffsetCommand}">
-                            <Path Fill="Black" Data="M0,0 h6 l-3,3 l-3,-3z" />
-                        </Button>
-                        <Button Height="{Binding ActualHeight, ElementName=DatesOffsetTextBox}" Width="15" Padding="0"
                                 Command="{Binding IncreaseDatesOffsetCommand}">
                             <Path Fill="Black" Data="M0,3 h6 l-3,-3 l-3,3z" />
+                        </Button>
+                        <Button Height="{Binding ActualHeight, ElementName=DatesOffsetTextBox}" Width="15" Padding="0"
+                                Command="{Binding DecreaseDatesOffsetCommand}">
+                            <Path Fill="Black" Data="M0,0 h6 l-3,3 l-3,-3z" />
                         </Button>
 
                         <CheckBox Content="Ignore night files" IsChecked="{Binding Settings.IsQueryIgnoringNightFiles, Source={x:Static Application.Current}}"
@@ -100,17 +100,23 @@
                 </ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Width="30">
+                        <GridViewColumn HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
                             <GridViewColumn.Header>
-                                <CheckBox IsChecked="{Binding CheckAll}" IsEnabled="{Binding DataContext.IsIdle, ElementName=AppWindow}" />
+                                <DockPanel>
+                                    <CheckBox DockPanel.Dock="Right" Margin="5,0,3,0" IsChecked="{Binding CheckAll}"
+                                              IsEnabled="{Binding DataContext.IsIdle, ElementName=AppWindow}" />
+                                    <TextBlock Text="Download" />
+                                </DockPanel>
                             </GridViewColumn.Header>
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <CheckBox IsChecked="{Binding IsSelected}"  IsEnabled="{Binding DataContext.IsIdle, ElementName=AppWindow}" />
+                                    <UniformGrid Columns="2">
+                                        <TextBlock Text="{Binding ID}" VerticalAlignment="Center" />
+                                        <CheckBox IsChecked="{Binding IsSelected}"  IsEnabled="{Binding DataContext.IsIdle, ElementName=AppWindow}" />
+                                    </UniformGrid>
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="ID" DisplayMemberBinding="{Binding ID}" Width="50" />
                         <GridViewColumn Header="Start" DisplayMemberBinding="{Binding StartTimeString}" Width="200" />
                         <GridViewColumn DisplayMemberBinding="{Binding ChannelName}" Width="100" HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
                             <GridViewColumn.Header>
@@ -150,7 +156,6 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <!--<GridViewColumn Header="Size (bytes)" DisplayMemberBinding="{Binding SizeInBytes}" Width="100" />-->
                     </GridView>
                 </ListView.View>
             </ListView>

@@ -3,19 +3,17 @@ using QSeeView.Tools;
 using QSeeView.Types;
 using QSeeView.Views;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Windows;
 using System.Windows.Controls;
 
 /*
 To-do
-- Settings-Channels: Online button
-- Download curreny playback video
-- Start with live view: Don't show main UI and shutdown app when live view closed
-- Open download folder after downloads (settings)
-- Play sound when downloads done (settings)
 - Sort query content
+- Download curreny playback video
 */
 
 namespace QSeeView
@@ -55,8 +53,8 @@ namespace QSeeView
             _downloader.DownloadError += Downloader_DownloadError;
             _downloader.DownloadsCompleted += Downloader_DownloadsCompleted;
 
-            if (App.Settings.IsAutoQueryAtStartup)
-                ContentRendered += MainWindow_ContentRendered;
+            ContentRendered += MainWindow_ContentRendered;
+
             SubscribeListVisibilityChanged();
         }
 
@@ -65,9 +63,13 @@ namespace QSeeView
             var commandLineArgs = Environment.GetCommandLineArgs();
             var lowercaseCommandLineArgs = commandLineArgs.ToList().ConvertAll(arg => arg.ToLower());
             if (lowercaseCommandLineArgs.Any(arg => arg.StartsWith("-live")))
+            {
+                Hide();
                 ShowLiveView();
-
-            Query();
+                Close();
+            }
+            else if (App.Settings.IsAutoQueryAtStartup)
+                Query();
         }
 
         protected override void OnClosed(EventArgs e)
@@ -157,7 +159,7 @@ namespace QSeeView
         }
 
         /// <summary>
-        /// Callback when a single download is completed
+        /// Callback when a single download of a batch is completed
         /// </summary>
         private void DeviceManager_DownloadCompleted(object sender, string errorMessage)
         {
@@ -178,11 +180,16 @@ namespace QSeeView
             _viewModel.State = StateType.Idle;
             _viewModel.StatusBarInfo = "Ready";
             _viewModel.TaskbarProgressValue = 0;
+
+            if (App.Settings.IsAutoOpenDownloads)
+                Process.Start(App.Settings.DownloadFolder);
+            if (App.Settings.DoPlayDownloadsCompleteSound)
+                new SoundPlayer(Properties.Resources.DownloadsComplete).Play();
         }
 
         private void Downloader_DownloadStarted(object sender, RecordFileInfoModel record)
         {
-            _viewModel.StatusBarInfo = $"Downloading {record} ({_downloader.PendingDownloads.Count} remaining)";
+            _viewModel.StatusBarInfo = $"Downloading {record.FileName} ({_downloader.PendingDownloads.Count} remaining)";
         }
 
         private void Downloader_DownloadError(object sender, string message)

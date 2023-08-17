@@ -211,5 +211,8 @@
   <ItemGroup>
     <Resource Include="App.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DownloadsComplete.wav" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

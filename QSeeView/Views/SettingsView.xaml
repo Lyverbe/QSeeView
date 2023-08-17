@@ -27,6 +27,8 @@
                     <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
                     <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
                     <CheckBox Content="Reset playback speed when changing file" IsChecked="{Binding IsResettingPlaybackSpeed}" />
+                    <CheckBox Content="Open download folder when downloads are done" IsChecked="{Binding IsAutoOpenDownloads}" />
+                    <CheckBox Content="Play sound when downloads are done" IsChecked="{Binding DoPlayDownloadsCompleteSound}" />
                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                         <TextBlock Text="Live view is " />
                         <TextBox Text="{Binding LiveViewSize, UpdateSourceTrigger=PropertyChanged}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
@@ -59,38 +61,49 @@
             </TabItem>
 
             <TabItem Header="Channels">
-                <DockPanel Margin="5">
-                    <TextBlock DockPanel.Dock="Top" Text="If a channel is not used, leave its name blank." TextWrapping="Wrap" />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,5,0,0">
+                    <ItemsControl ItemsSource="{Binding ChannelsInfo}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <DockPanel Margin="0,1,0,0">
+                                    <TextBlock DockPanel.Dock="Left" Text="{Binding ChannelId, Converter={StaticResource ChannelIdConverter}}"
+                                                HorizontalAlignment="Center" MinWidth="15" Foreground="{StaticResource ForegroundColor}" />
+                                    <Button DockPanel.Dock="Right" Command="{Binding SetOrientationCommand}" Width="15" Padding="0" ToolTip="Orientation" Margin="2,0,0,0">
+                                        <Path Stroke="Black">
+                                            <Path.Style>
+                                                <Style TargetType="Path">
+                                                    <Setter Property="Data" Value="M0,0 v10 h5 v-10 h-5z" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsLandscape}" Value="true">
+                                                            <Setter Property="Data" Value="M0,0 h10 v5 h-10 v-5z" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Path.Style>
+                                        </Path>
+                                    </Button>
 
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,5,0,0">
-                        <ItemsControl ItemsSource="{Binding ChannelsInfo}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <DockPanel Margin="0,1,0,0">
-                                        <TextBlock DockPanel.Dock="Left" Text="{Binding ChannelId, Converter={StaticResource ChannelIdConverter}}"
-                                                   HorizontalAlignment="Center" MinWidth="15" Foreground="{StaticResource ForegroundColor}" />
-                                        <Button DockPanel.Dock="Right" Command="{Binding SetOrientationCommand}" Width="15" Padding="0" ToolTip="Orientation">
-                                            <Path Stroke="Black">
-                                                <Path.Style>
-                                                    <Style TargetType="Path">
-                                                        <Setter Property="Data" Value="M0,0 v10 h5 v-10 h-5z" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsLandscape}" Value="true">
-                                                                <Setter Property="Data" Value="M0,0 h10 v5 h-10 v-5z" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Path.Style>
-                                            </Path>
-                                        </Button>
+                                    <Button DockPanel.Dock="Right" Command="{Binding SetOnlineCommand}" Width="15" Padding="0" ToolTip="Online/Offline">
+                                        <Ellipse Width="10" Height="10" Stroke="Black">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="Red" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsOnline}" Value="true">
+                                                            <Setter Property="Fill" Value="LimeGreen" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                    </Button>
 
-                                        <TextBox Text="{Binding Name}" Margin="5,0,5,0" VerticalAlignment="Center" MaxLength="25" />
-                                    </DockPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
+                                    <TextBox Text="{Binding Name}" Margin="5,0,5,0" VerticalAlignment="Center" MaxLength="25" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Paths">

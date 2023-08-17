@@ -49,6 +49,8 @@ namespace QSeeView.ViewModels
             StartDatesOffset = App.Settings.StartDatesOffset;
             FileNamesPattern = App.Settings.FileNamesPattern;
             LiveViewSize = App.Settings.LiveViewSize;
+            IsAutoOpenDownloads = App.Settings.IsAutoOpenDownloads;
+            DoPlayDownloadsCompleteSound = App.Settings.DoPlayDownloadsCompleteSound;
         }
 
         public ICommand OkCommand { get; }
@@ -158,6 +160,9 @@ namespace QSeeView.ViewModels
                 OnPropertyChanged(nameof(LiveViewColumnsCount));
             }
         }
+
+        public bool IsAutoOpenDownloads { get; set; }
+        public bool DoPlayDownloadsCompleteSound { get; set; }
 
         public int NightFilesStartHour { get; set; }
         public int NightFilesEndHour { get; set; }

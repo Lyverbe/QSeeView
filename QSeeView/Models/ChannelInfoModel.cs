@@ -35,6 +35,7 @@ namespace QSeeView.Tools.Models
         }
 
         public ICommand SetOrientationCommand { get; private set; }
+        public ICommand SetOnlineCommand { get; private set; }
 
         [DataMember]
         public int ChannelId { get; set; }
@@ -64,7 +65,7 @@ namespace QSeeView.Tools.Models
         [DataMember]
         public bool IsOnline
         {
-            get => _isOnline && !string.IsNullOrEmpty(Name);
+            get => _isOnline;
             set
             {
                 _isOnline = value;
@@ -88,15 +89,12 @@ namespace QSeeView.Tools.Models
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         [OnDeserialized]
-        private void OnDeserialized(StreamingContext streamingContext)
-        {
-            Initialize();
-            _isOnline = !string.IsNullOrEmpty(Name);
-        }
+        private void OnDeserialized(StreamingContext streamingContext) => Initialize();
 
         private void Initialize()
         {
             SetOrientationCommand = new RelayCommand(() => IsLandscape = !IsLandscape);
+            SetOnlineCommand = new RelayCommand(() => IsOnline = !IsOnline);
         }
     }
 }

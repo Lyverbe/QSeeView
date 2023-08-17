@@ -40,6 +40,8 @@ namespace QSeeView.Views
                 App.Settings.IsResettingPlaybackSpeed = _viewModel.IsResettingPlaybackSpeed;
                 App.Settings.FileNamesPattern = _viewModel.FileNamesPattern;
                 App.Settings.LiveViewSize = _viewModel.LiveViewSize;
+                App.Settings.IsAutoOpenDownloads = _viewModel.IsAutoOpenDownloads;
+                App.Settings.DoPlayDownloadsCompleteSound = _viewModel.DoPlayDownloadsCompleteSound;
             }
 
             DialogResult = isOkClicked;
