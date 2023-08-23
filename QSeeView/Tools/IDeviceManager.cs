@@ -27,8 +27,11 @@ namespace QSeeView.Tools
         IntPtr StartPlayback(NET_TIME startTime, NET_TIME endTIme, uint channelId, IntPtr windowHandle);
         void PlaybackControl(IntPtr playbackId, PlayBackType command);
         long? GetPlayBackOsdTick(IntPtr playbackId);
+        bool CapturePlaybackPicture(IntPtr playbackId, string outputFileName, EM_NET_CAPTURE_FORMATS captureFormat);
 
         IntPtr StartLiveView(int channelId, IntPtr windowHandle);
         void StopLiveView(IntPtr monitorHandle);
+
+        (uint spaceRemaining, uint capacity) GetDiskInfo(int diskId);
     }
 }

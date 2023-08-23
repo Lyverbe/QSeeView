@@ -16,7 +16,6 @@ namespace QSeeView.Tools
         public event EventHandler DownloadsCompleted;
 
         private IDeviceManager _deviceManager;
-        private IList<RecordFileInfoModel> _pendingDownloads;
         private IList<RecordFileInfoModel> _pendingConversions;
 
         public Downloader(IDeviceManager deviceManager)
@@ -28,29 +27,22 @@ namespace QSeeView.Tools
             _deviceManager.DownloadCompleted += DownloadCompleted;
         }
 
-        public IList<RecordFileInfoModel> PendingDownloads
-        {
-            get => _pendingDownloads;
-            set
-            {
-                _pendingDownloads = value;
-                if (PendingDownloads.Any())
-                {
-                    PendingDownloads.ToList().ForEach(record => record.ProgressString = "Pending download...");
-                    StartDownload();
-                }
-            }
-        }
-
+        public IList<RecordFileInfoModel> PendingDownloads { get; private set; }
         public bool IsDownloading { get; private set; }
 
+        public void StartDownloads(IList<RecordFileInfoModel> records)
+        {
+            PendingDownloads = records;
+            PendingDownloads.ToList().ForEach(record => record.ProgressString = "Pending download...");
+            StartDownload();
+        }
         private void StartDownload()
         {
-            var record = _pendingDownloads.First();
+            var record = PendingDownloads.First();
             _deviceManager.DownloadStart(record);
             IsDownloading = true;
             DownloadStarted?.Invoke(this, record);
-            _pendingDownloads.Remove(record);
+            PendingDownloads.Remove(record);
         }
 
         public void StopDownload()
@@ -73,7 +65,7 @@ namespace QSeeView.Tools
             else
                 _deviceManager.DownloadRecord.ProgressString = "Done";
 
-            if (_pendingDownloads.Any())
+            if (PendingDownloads.Any())
                 StartDownload();
             else
                 IsDownloading = false;
@@ -93,6 +85,7 @@ namespace QSeeView.Tools
         {
             var process = new Process();
             process.StartInfo.FileName = App.Settings.FfmpegPath;
+            // For full conversion versus quick header change
             //process.StartInfo.Arguments = $"-y -r 24 -i \"{DownloadFolder}\\{recordFileInfo.FileName}.dav\" -preset fast -b:v 1000k -c libx264 \"{DownloadFolder}\\{recordFileInfo.FileName}.avi\"";
             process.StartInfo.Arguments = $"-y -f dhav -i \"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.dav\" -vcodec copy \"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.avi\"";
             process.StartInfo.UseShellExecute = true;

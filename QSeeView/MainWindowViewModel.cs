@@ -20,6 +20,8 @@ namespace QSeeView
         public event EventHandler StartDownload;
         public event EventHandler StopDownload;
         public event EventHandler<Button> FilterChannels;
+        public event EventHandler Close;
+        public event EventHandler ExportQuery;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -36,6 +38,7 @@ namespace QSeeView
         private double _taskbarProgressValue;
         private IList<RecordFileInfoModel> _records;
         private string _datesOffsetString;
+        private string _hddSpaceInfo;
 
         public MainWindowViewModel()
         {
@@ -50,6 +53,8 @@ namespace QSeeView
             DecreaseDatesOffsetCommand = new RelayCommand(() => ChangeDatesOffset(-1));
             IncreaseDatesOffsetCommand = new RelayCommand(() => ChangeDatesOffset(1));
             FilterChannelsCommand = new RelayCommand<Button>((button) => FilterChannels?.Invoke(this, button));
+            ExitCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
+            ExportQueryCommand = new RelayCommand(() => ExportQuery?.Invoke(this, EventArgs.Empty), () => Records != null && Records.Any());
 
             State = StateType.Idle;
 
@@ -69,6 +74,8 @@ namespace QSeeView
         public ICommand DecreaseDatesOffsetCommand { get; }
         public ICommand IncreaseDatesOffsetCommand { get; }
         public ICommand FilterChannelsCommand { get; }
+        public ICommand ExitCommand { get;}
+        public ICommand ExportQueryCommand { get; }
 
         public ObservableCollection<string> DownloadErrors { get; private set; }
         public int TotalDownloadCount { get; set; }
@@ -215,6 +222,16 @@ namespace QSeeView
             }
         }
         private int DatesOffset { get; set; }
+
+        public string HddSpaceInfo
+        {
+            get => _hddSpaceInfo;
+            set
+            {
+                _hddSpaceInfo = value;
+                OnPropertyChanged(nameof(HddSpaceInfo));
+            }
+        }
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

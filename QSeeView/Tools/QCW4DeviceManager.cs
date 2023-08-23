@@ -204,7 +204,26 @@ namespace QSeeView.Tools
             return (currentTime.dwYear > 0) ? currentTime.ToDateTime().Ticks : (long?)null;
         }
 
+        /// <summary>
+        /// Saves the current playback frame in a file
+        /// </summary>
+        public bool CapturePlaybackPicture(IntPtr playbackId, string outputFileName, EM_NET_CAPTURE_FORMATS captureFormat)
+        {
+            return NETClient.CapturePicture(playbackId, outputFileName, captureFormat);
+        }
+
         public IntPtr StartLiveView(int channelId, IntPtr windowHandle) => NETClient.RealPlay(LoginId, channelId, windowHandle, EM_RealPlayType.Realplay);
         public void StopLiveView(IntPtr monitorHandle) => NETClient.StopRealPlay(monitorHandle);
+
+        public (uint spaceRemaining, uint capacity) GetDiskInfo(int diskId)
+        {
+            object state = new NET_HARDDISK_STATE();
+            NETClient.QueryDevState(LoginId, (int)EM_DEVICE_STATE.DISK, ref state, typeof(NET_HARDDISK_STATE), 1000);
+
+            var hddState = (NET_HARDDISK_STATE)state;
+            if (diskId > hddState.stDisks.Length)
+                throw new ArgumentOutOfRangeException(nameof(diskId));
+            return (hddState.stDisks[diskId].dwFreeSpace, hddState.stDisks[diskId].dwVolume);
+        }
     }
 }

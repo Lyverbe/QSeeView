@@ -10,20 +10,46 @@
         >
     <Window.Resources>
         <Style TargetType="Button">
-            <Setter Property="Padding" Value="10,2" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="Width" Value="30" />
+        </Style>
+        <Style TargetType="Path">
+            <Setter Property="Fill" Value="Black" />
         </Style>
     </Window.Resources>
     
     <DockPanel Margin="10">
-        <UniformGrid DockPanel.Dock="Bottom" Columns="7" Margin="0,5,0,0" HorizontalAlignment="Center">
-            <Button Content="Stop" Command="{Binding StopCommand}" ToolTip="Stop" />
-            <Button Content="Play" Command="{Binding PlayCommand}" Margin="5,0,0,0" ToolTip="Play (space)" />
-            <Button Content="Pause" Command="{Binding PauseCommand}" Margin="5,0,0,0" ToolTip="Pause (space)" />
-            <Button Content="Slower" Command="{Binding SlowerCommand}" Margin="5,0,0,0" ToolTip="Slower (down arrow)" />
-            <Button Content="Faster" Command="{Binding FasterCommand}" Margin="5,0,0,0" ToolTip="Faster (up arrow)" />
-            <Button Content="Previous" Command="{Binding PreviousCommand}" Margin="15,0,0,0" ToolTip="Previous (left arrow)" />
-            <Button Content="Next" Command="{Binding NextCommand}" Margin="5,0,0,0" ToolTip="Next (right arrow)" />
-        </UniformGrid>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,5,0,0">
+            <Button Command="{Binding StopCommand}" ToolTip="Stop">
+                <Path Data="M0,0 h8 v8 h-8 v-8z" />
+            </Button>
+            <Button Command="{Binding PlayCommand}" Margin="5,0,0,0" ToolTip="Play (space)">
+                <Path Data="M0,0 l5,5 l-5,5z" />
+            </Button>
+            <Button Command="{Binding PauseCommand}" Margin="5,0,0,0" ToolTip="Pause (space)">
+                <Path Data="M0,0 h3 v10 h-3z M5,0 h3 v10 h-3" />
+            </Button>
+            <Button Command="{Binding SlowerCommand}" Margin="5,0,0,0" ToolTip="Slower (down arrow)">
+                <Path Data="M0,5 l5,-5 v5 l5,-5 v10 l-5,-5 v5z" />
+            </Button>
+            <Button Command="{Binding FasterCommand}" Margin="5,0,0,0" ToolTip="Faster (up arrow)">
+                <Path Data="M0,0 l5,5 v-5 l5,5 l-5,5 v-5 l-5,5z" />
+            </Button>
+            
+            <Button Command="{Binding PreviousCommand}" Margin="15,0,0,0" ToolTip="Previous (left arrow)">
+                <Path Data="M0,5 l5,-5 h1 v2 l-3,3 l3,3 v2 h-1z" />
+            </Button>
+            <Button Command="{Binding NextCommand}" Margin="5,0,0,0" ToolTip="Next (right arrow)">
+                <Path Data="M0,0 h1 l5,5 l-5,5 h-1 v-2 l3,-3 l-3,-3z" />
+            </Button>
+
+            <Button Command="{Binding SaveSnapshotCommand}" Margin="15,0,0,0" ToolTip="Save snapshot">
+                <Grid>
+                    <Path Data="M0,3 l1,-1 h3 l2,-2 h3 l2,2 h3 l1,1 v6 l-1,1 h-13 l-1,-1z" />
+                    <Path Fill="WhiteSmoke" Data="M10,6 A1,1 1 1 1 5,6z M10,6 A1,1 1 1 0 5,6z" />
+                </Grid>
+            </Button>
+        </StackPanel>
 
         <DockPanel DockPanel.Dock="Bottom" Margin="0,5,0,0">
             <TextBlock DockPanel.Dock="Left" Text="{Binding SliderTimeText}" />
@@ -32,8 +58,8 @@
         </DockPanel>
 
         <Viewbox>
-            <WindowsFormsHost Width="{Binding ImageInitialWidth}" Height="{Binding ImageInitialHeight}">
-                <wf:PictureBox />
+            <WindowsFormsHost Name="PictureBoxHost" Width="{Binding ImageInitialWidth}" Height="{Binding ImageInitialHeight}">
+                <wf:PictureBox Name="PlaybackPictureBox" />
             </WindowsFormsHost>
         </Viewbox>
     </DockPanel>

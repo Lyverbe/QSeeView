@@ -43,6 +43,7 @@ namespace QSeeView.Views
             _viewModel.IncreaseSpeed += (s, e) => IncreaseSpeed();
             _viewModel.SetPlaybackControl += (s, command) => _deviceManager.PlaybackControl(_viewModel.PlaybackID, command);
             _viewModel.UpdateSlider += ViewModel_UpdateSlider;
+            _viewModel.SaveSnapshot += ViewModel_SaveSnapshot;
 
             Loaded += PlaybackView_Loaded;
             ContentRendered += (s, e) => InitializePlayback();
@@ -247,6 +248,18 @@ namespace QSeeView.Views
                 _deviceManager.PlaybackControl(_viewModel.PlaybackID, PlayBackType.Slow);
                 catchupSpeed /= 2;
             }
+        }
+
+        private void ViewModel_SaveSnapshot(object sender, EventArgs e)
+        {
+            var snapshotTimestamp = new DateTime((long)_viewModel.PlaybackSliderValue);
+            var view = new SaveSnapshotSettingsView(snapshotTimestamp, _records[_playIndex].Channel)
+            {
+                Owner = this
+            };
+            var saveRequested = view.ShowDialog();
+            if (saveRequested == true)
+                _deviceManager.CapturePlaybackPicture(_viewModel.PlaybackID, view.OutputFileName, view.CaptureFormat);
         }
     }
 }

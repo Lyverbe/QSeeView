@@ -60,6 +60,8 @@ namespace QSeeView.Tools
         public bool IsAutoOpenDownloads { get; set; }
         [DataMember]
         public bool DoPlayDownloadsCompleteSound { get; set; }
+        [DataMember]
+        public int LastPlaybackCaptureFormat { get; set; }
 
         public string Password { get; set; }
 

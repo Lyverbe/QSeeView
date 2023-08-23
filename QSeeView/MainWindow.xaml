@@ -22,16 +22,24 @@
 
     <DockPanel>
         <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Export query to CSV..." Command="{Binding ExportQueryCommand}" />
+                <MenuItem Header="Open download folder..." Command="{Binding OpenDownloadFolderCommand}" InputGestureText="Ctrl+O" />
+                <Separator />
+                <MenuItem Header="Exit" Command="{Binding ExitCommand}" InputGestureText="Alt+F4" />
+            </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Settings..." Command="{Binding SettingsCommand}" />
-                <MenuItem Header="Open download folder..." Command="{Binding OpenDownloadFolderCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="Live view..." Command="{Binding LiveViewCommand}" InputGestureText="Ctrl+L" />
             </MenuItem>
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom" Margin="0,5,0,0">
-            <StatusBarItem>
-                <TextBlock Text="{Binding StatusBarInfo}" />
+            <StatusBarItem HorizontalContentAlignment="Stretch">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding HddSpaceInfo}" />
+                    <TextBlock Text="{Binding StatusBarInfo}" />
+                </DockPanel>
             </StatusBarItem>
         </StatusBar>
 
@@ -80,6 +88,7 @@
             </StackPanel>
 
             <ListView x:Name="RecordsList" ItemsSource="{Binding Records}" Margin="0,5,0,0"
+                      GridViewColumnHeader.Click="RecordsListHeader_Click"
                       Background="{Binding Background, ElementName=AppWindow}" Foreground="{Binding Foreground, ElementName=AppWindow}">
                 <ListView.Resources>
                     <Style x:Key="StretchedHeaderStyle" TargetType="GridViewColumnHeader">
@@ -100,7 +109,7 @@
                 </ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
+                        <GridViewColumn x:Name="DownloadColumn" HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
                             <GridViewColumn.Header>
                                 <DockPanel>
                                     <CheckBox DockPanel.Dock="Right" Margin="5,0,3,0" IsChecked="{Binding CheckAll}"
@@ -117,8 +126,8 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn Header="Start" DisplayMemberBinding="{Binding StartTimeString}" Width="200" />
-                        <GridViewColumn DisplayMemberBinding="{Binding ChannelName}" Width="100" HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
+                        <GridViewColumn x:Name="StartColumn" Header="Start" DisplayMemberBinding="{Binding StartTimeString}" Width="200" />
+                        <GridViewColumn x:Name="ChannelColumn" DisplayMemberBinding="{Binding ChannelName}" Width="100" HeaderContainerStyle="{StaticResource StretchedHeaderStyle}">
                             <GridViewColumn.Header>
                                 <DockPanel>
                                     <Button x:Name="FilterChannelsButton" DockPanel.Dock="Right" Width="12" Height="12" Padding="0" Margin="0,0,3,0"
@@ -129,14 +138,14 @@
                                 </DockPanel>
                             </GridViewColumn.Header>
                         </GridViewColumn>
-                        <GridViewColumn Header="Length" Width="70">
+                        <GridViewColumn x:Name="LengthColumn" Header="Length" Width="70">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Length}" Foreground="{Binding LengthColor}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn>
+                        <GridViewColumn x:Name="MediaColumn">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Padding="0" Width="20" Height="16" Command="{Binding DataContext.PlayCommand, ElementName=AppWindow}"

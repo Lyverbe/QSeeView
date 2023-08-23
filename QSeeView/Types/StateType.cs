@@ -3,6 +3,6 @@
     public enum StateType
     {
         Idle,
-        Running
+        Downloading
     };
 }

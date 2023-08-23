@@ -111,8 +111,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\ChannelIdConverter.cs" />
+    <Compile Include="Models\CaptureFormatModel.cs" />
     <Compile Include="Models\LiveMonitorModel.cs" />
     <Compile Include="Models\ChannelInfoModel.cs" />
+    <Compile Include="Tools\QueryExporter.cs" />
     <Compile Include="Tools\QueryManager.cs" />
     <Compile Include="Tools\Downloader.cs" />
     <Compile Include="Tools\FileNameBuilder.cs" />
@@ -125,6 +127,7 @@
     <Compile Include="ViewModels\FilterChannelsViewModel.cs" />
     <Compile Include="ViewModels\LiveViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
+    <Compile Include="ViewModels\SaveSnapshotSettingsViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Views\FilterChannelsView.xaml.cs">
       <DependentUpon>FilterChannelsView.xaml</DependentUpon>
@@ -134,6 +137,9 @@
     </Compile>
     <Compile Include="Views\LoginView.xaml.cs">
       <DependentUpon>LoginView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SaveSnapshotSettingsView.xaml.cs">
+      <DependentUpon>SaveSnapshotSettingsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsView.xaml.cs">
       <DependentUpon>SettingsView.xaml</DependentUpon>
@@ -163,6 +169,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\LoginView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SaveSnapshotSettingsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

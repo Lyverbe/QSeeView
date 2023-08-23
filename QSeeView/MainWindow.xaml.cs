@@ -6,14 +6,19 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Media;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 /*
 To-do
-- Sort query content
 - Download curreny playback video
+- Resize live view very small = odd look (ie. zoom sliders)
+- Implement light theme
+- Change layouts to have edit controls under label
 */
 
 namespace QSeeView
@@ -27,6 +32,7 @@ namespace QSeeView
         private FilterChannelsView _filterChannelsView;
         private Point _filterChannelsViewOffset;
         private QueryManager _queryManager;
+        private GridViewColumnHeader _lastColumnClicked;
 
         public MainWindow(IDeviceManager deviceManager)
         {
@@ -39,13 +45,15 @@ namespace QSeeView
             _viewModel = new MainWindowViewModel();
             DataContext = _viewModel;
 
-            _viewModel.PlayRecord += ViewModel_PlayRecord;
+            _viewModel.PlayRecord += (s, record) => PlaybackRecord(record);
             _viewModel.ShowSettings += ViewModel_ShowSettings;
             _viewModel.Query += (s, e) => Query();
             _viewModel.ShowLiveView += (s, e) => ShowLiveView();
             _viewModel.StartDownload += ViewModel_StartDownload;
             _viewModel.StopDownload += ViewModel_StopDownload;
             _viewModel.FilterChannels += ViewModel_FilterChannels;
+            _viewModel.Close += (s, e) => Close();
+            _viewModel.ExportQuery += ViewModel_ExportQuery;
 
             _deviceManager.DownloadCompleted += DeviceManager_DownloadCompleted;
 
@@ -54,6 +62,11 @@ namespace QSeeView
             _downloader.DownloadsCompleted += Downloader_DownloadsCompleted;
 
             ContentRendered += MainWindow_ContentRendered;
+
+            var assemblyName = Assembly.GetExecutingAssembly().GetName();
+            var name = assemblyName.Name;
+            var version = assemblyName.Version.ToString();
+            Title = $"{name} v{version}";
 
             SubscribeListVisibilityChanged();
         }
@@ -69,7 +82,10 @@ namespace QSeeView
                 Close();
             }
             else if (App.Settings.IsAutoQueryAtStartup)
+            {
                 Query();
+                UpdateDiskInfo();
+            }
         }
 
         protected override void OnClosed(EventArgs e)
@@ -78,7 +94,27 @@ namespace QSeeView
             base.OnClosed(e);
         }
 
-        private void ViewModel_PlayRecord(object sender, RecordFileInfoModel record)
+        protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
+        {
+            if (_filterChannelsView != null && _filterChannelsView.IsVisible)
+                _filterChannelsView.CloseIfAllowed();
+            base.OnPreviewMouseLeftButtonUp(e);
+        }
+
+        protected override void OnPreviewMouseDoubleClick(MouseButtonEventArgs e)
+        {
+            var listView = e.Source as ListView;
+            if (listView != null)
+            {
+                var record = listView.SelectedValue as RecordFileInfoModel;
+                if (record != null)
+                    PlaybackRecord(record);
+            }
+
+            base.OnPreviewMouseDoubleClick(e);
+        }
+
+        private void PlaybackRecord(RecordFileInfoModel record)
         {
             var playIndex = _viewModel.Records.IndexOf(record);
             var view = new PlaybackView(_deviceManager, _viewModel.Records, playIndex)
@@ -96,6 +132,10 @@ namespace QSeeView
 
         private void Query()
         {
+            var canQuery = CanQuery();
+            if (!canQuery)
+                return;
+
             _queryManager.Run(_viewModel.StartDateTime, _viewModel.EndDateTime);
             _queryManager.FilterResult();
             _viewModel.Records = _queryManager.FilteredResult.ToList();
@@ -104,6 +144,17 @@ namespace QSeeView
                 MessageBox.Show($"Limit of {_deviceManager.MaxQueryRecords} records has been reached. Some files may be missing.", "Query");
 
             _viewModel.CheckAll = true;
+        }
+
+        private bool CanQuery()
+        {
+            if (_viewModel.EndDateTime <= _viewModel.StartDateTime)
+            {
+                MessageBox.Show("End date must be greater than start date", "Title");
+                return false;
+            }
+
+            return true;
         }
 
         private void ViewModel_ShowSettings(object sender, EventArgs e)
@@ -133,10 +184,11 @@ namespace QSeeView
 
             _viewModel.Records.ToList().ForEach(record => record.ResetProgress());
 
-            _downloader.PendingDownloads = _viewModel.Records.Where(record => record.IsSelected).ToList();
-            if (_downloader.PendingDownloads.Any())
+            var recordsToDownload = _viewModel.Records.Where(record => record.IsSelected).ToList();
+            if (recordsToDownload.Any())
             {
-                _viewModel.State = StateType.Running;
+                _downloader.StartDownloads(recordsToDownload);
+                _viewModel.State = StateType.Downloading;
                 _viewModel.TotalDownloadCount = _downloader.PendingDownloads.Count();
             }
         }
@@ -156,6 +208,7 @@ namespace QSeeView
         {
             _downloader.StopDownload();
             _viewModel.State = StateType.Idle;
+            _viewModel.TaskbarProgressValue = 0;
         }
 
         /// <summary>
@@ -231,6 +284,61 @@ namespace QSeeView
             }
 
             base.OnLocationChanged(e);
+        }
+
+        private void RecordsListHeader_Click(object sender, RoutedEventArgs e)
+        {
+            var columnHeader = e.OriginalSource as GridViewColumnHeader;
+            if (columnHeader != null)
+            {
+                var gridView = (sender as ListView)?.View as GridView;
+                if (gridView != null)
+                {
+                    var isAscendingOrder = (columnHeader != _lastColumnClicked);
+
+                    if (columnHeader.Column == DownloadColumn)
+                        _viewModel.Records = Sort(record => record.ID, isAscendingOrder).ToList();
+                    else if (columnHeader.Column == StartColumn)
+                        _viewModel.Records = Sort(record => record.StartTime, isAscendingOrder).ToList();
+                    else if (columnHeader.Column == ChannelColumn)
+                        _viewModel.Records = Sort(record => record.Channel, isAscendingOrder).ToList();
+                    else if (columnHeader.Column == LengthColumn)
+                        _viewModel.Records = Sort(record => record.Length, isAscendingOrder).ToList();
+
+                    _lastColumnClicked = isAscendingOrder ? columnHeader : null;
+                }
+            }
+        }
+
+        private IOrderedQueryable<RecordFileInfoModel> Sort<T>(Expression<Func<RecordFileInfoModel, T>> predicate, bool isAscendingOrder)
+        {
+            var query = _viewModel.Records.AsQueryable();
+            return isAscendingOrder ? query.OrderBy(predicate) : query.OrderByDescending(predicate);
+        }
+
+        private void ViewModel_ExportQuery(object sender, EventArgs e)
+        {
+            var dialog = new System.Windows.Forms.SaveFileDialog()
+            {
+                Title = "Export query",
+                Filter = "CSV files|*.csv|All files|*.*",
+                OverwritePrompt = true
+            };
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var exporter = new QueryExporter();
+                var success = exporter.Export(dialog.FileName, _viewModel.Records);
+                if (success)
+                    MessageBox.Show("Export successful", "Export query");
+                else
+                    MessageBox.Show("Export failed:\n" + exporter.LastError, "Export query", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UpdateDiskInfo()
+        {
+            var diskInfo = _deviceManager.GetDiskInfo(0);
+            _viewModel.HddSpaceInfo = $"Disk space: {diskInfo.spaceRemaining / 1024}G/{diskInfo.capacity / 1024}G";
         }
     }
 }

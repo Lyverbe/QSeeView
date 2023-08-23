@@ -17,6 +17,7 @@ namespace QSeeView.ViewModels
         public event EventHandler IncreaseSpeed;
         public event EventHandler<PlayBackType> SetPlaybackControl;
         public event EventHandler UpdateSlider;
+        public event EventHandler SaveSnapshot;
 
         private double _playbackSliderMinimum;
         private double _playbackSliderMaximum;
@@ -41,6 +42,7 @@ namespace QSeeView.ViewModels
             FasterCommand = new RelayCommand(() => IncreaseSpeed?.Invoke(this, new EventArgs()), () => !IsPaused);
             PreviousCommand = new RelayCommand(() => PreviousVideo?.Invoke(this, new EventArgs()));
             NextCommand = new RelayCommand(() => NextVideo?.Invoke(this, new EventArgs()));
+            SaveSnapshotCommand = new RelayCommand(() => SaveSnapshot?.Invoke(this, new EventArgs()), () => IsPaused);
         }
 
         public ICommand StopCommand { get; }
@@ -50,6 +52,7 @@ namespace QSeeView.ViewModels
         public ICommand FasterCommand { get; }
         public ICommand PreviousCommand { get; }
         public ICommand NextCommand { get; }
+        public ICommand SaveSnapshotCommand { get; }
 
         public IntPtr PlaybackID { get; set; }
         private double Speed { get; set; }
