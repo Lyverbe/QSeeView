@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         mc:Ignorable="d"
-        Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
+        Background="{StaticResource ThemeBackgroundBrush}" Foreground="{StaticResource ThemeForegroundBrush}"
         Title="Playback" Width="700" Height="300" WindowState="Maximized" ResizeMode="CanResize"
         >
     <Window.Resources>

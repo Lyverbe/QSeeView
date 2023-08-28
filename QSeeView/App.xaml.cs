@@ -29,6 +29,7 @@ namespace QSeeView
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
             LoadSettings(SettingsFileName);
+            InitializeTheme();
 
             if (Settings != null)
             {
@@ -52,6 +53,16 @@ namespace QSeeView
                 SaveSettings();
             }
             Shutdown();
+        }
+
+        private void InitializeTheme()
+        {
+            var dictionary = Resources.MergedDictionaries.FirstOrDefault(dict => dict.Source.OriginalString.ToLower().StartsWith("themes/"));
+            if (dictionary != null)
+            {
+                var theme = (Settings.ThemeId == Types.ThemeType.Light) ? "Light" : "Dark";
+                dictionary.Source = new Uri($"Themes/{theme}.xaml", UriKind.RelativeOrAbsolute);
+            }
         }
 
         private void LoadSettings(string fileName)

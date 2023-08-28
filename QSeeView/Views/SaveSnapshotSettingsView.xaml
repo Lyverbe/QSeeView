@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         ResizeMode="NoResize"
         WindowStartupLocation="CenterOwner"
-        Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
+        Background="{StaticResource ThemeBackgroundBrush}" Foreground="{StaticResource ThemeForegroundBrush}"
         Title="Save Snapshot Settings" Width="500" SizeToContent="Height">
     <DockPanel Margin="10">
         <UniformGrid DockPanel.Dock="Bottom" Columns="2" HorizontalAlignment="Right" Margin="0,5,0,0">

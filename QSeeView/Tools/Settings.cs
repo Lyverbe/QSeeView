@@ -1,4 +1,5 @@
 ﻿using QSeeView.Tools.Models;
+using QSeeView.Types;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
@@ -62,6 +63,8 @@ namespace QSeeView.Tools
         public bool DoPlayDownloadsCompleteSound { get; set; }
         [DataMember]
         public int LastPlaybackCaptureFormat { get; set; }
+        [DataMember]
+        public ThemeType ThemeId { get; set; }
 
         public string Password { get; set; }
 

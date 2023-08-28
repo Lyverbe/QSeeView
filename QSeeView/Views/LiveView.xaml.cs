@@ -1,7 +1,10 @@
-﻿using QSeeView.Tools;
+﻿using QSeeView.Models;
+using QSeeView.Tools;
 using QSeeView.Tools.Models;
 using QSeeView.ViewModels;
 using System;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
@@ -37,6 +40,17 @@ namespace QSeeView.Views
             ContentRendered += LiveView_ContentRendered;
         }
 
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            if (_viewModel.LiveMonitors.Any(monitor => monitor.IsRecording))
+            {
+                System.Windows.MessageBox.Show("Please stop all recordings before closing this window", Title);
+                e.Cancel = true;
+            }
+
+            base.OnClosing(e);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             _viewModel.LiveMonitors.Where(monitor => monitor.IsOnline).ToList().ForEach(monitor => monitor.StopLiveView());
@@ -65,6 +79,7 @@ namespace QSeeView.Views
                 }
 
                 liveMonitor.ChannelChanging += LiveMonitor_ChannelChanging;
+                liveMonitor.RecordButtonPressed += LiveMonitor_RecordButtonPressed;
             }
         }
 
@@ -176,6 +191,34 @@ namespace QSeeView.Views
             {
                 var pictureBox = liveMonitor.Host.Child as PictureBox;
                 liveMonitor.DisplayOriginalSize = new Size(pictureBox.Width, pictureBox.Height);
+            }
+        }
+
+        private void LiveMonitor_RecordButtonPressed(object sender, EventArgs e)
+        {
+            var liveMonitor = sender as LiveMonitorModel;
+            if (liveMonitor.IsRecording)
+            {
+                _deviceManager.StopSaveRealData(liveMonitor.PlayHandle);
+                liveMonitor.IsRecording = false;
+
+                var converter = new VideoConverter();
+                try
+                {
+                    converter.ConversionDone += (s, exitCode) => File.Delete(Path.Combine(App.Settings.DownloadFolder, liveMonitor.LocalRecordFileName + ".dav"));
+                    converter.Convert(liveMonitor.LocalRecordFileName);
+                }
+                catch (Win32Exception exception)
+                {
+                    System.Windows.MessageBox.Show($"{liveMonitor.LocalRecordFileName}: Conversion process error - {exception.Message}", "Local record",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                liveMonitor.LocalRecordFileName = FileNameBuilder.Build(App.Settings.FileNamesPattern, DateTime.Now, liveMonitor.SelectedChannel.ChannelId);
+                var fileName = Path.Combine(App.Settings.DownloadFolder, liveMonitor.LocalRecordFileName + ".dav");
+                liveMonitor.IsRecording = _deviceManager.SaveRealData(liveMonitor.PlayHandle, fileName);
             }
         }
     }

@@ -15,10 +15,8 @@ using System.Windows.Input;
 
 /*
 To-do
-- Download curreny playback video
-- Resize live view very small = odd look (ie. zoom sliders)
-- Implement light theme
-- Change layouts to have edit controls under label
+- Offer to restart when theme changed
+- Handle multiple HDD
 */
 
 namespace QSeeView

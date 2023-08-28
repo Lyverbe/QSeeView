@@ -34,6 +34,9 @@ namespace QSeeView.Tools
         {
         }
 
+        /// <summary>
+        /// Logs the user into the device
+        /// </summary>
         public void Login(string deviceIp, ushort devicePort, string username, string password)
         {
             LoginId = IntPtr.Zero;
@@ -45,37 +48,41 @@ namespace QSeeView.Tools
             LoginId = OriginalSDK.CLIENT_LoginEx2(deviceIp, devicePort, username, password, EM_LOGIN_SPAC_CAP_TYPE.TCP, IntPtr.Zero, ref deviceInfo, ref errorCode);
         }
 
+        /// <summary>
+        /// Logs out the user and shuts down the connection
+        /// </summary>
         public void Shutdown()
         {
+            OriginalSDK.CLIENT_Logout(LoginId);
             OriginalSDK.CLIENT_Cleanup();
         }
 
+        /// <summary>
+        /// Performs a record query
+        /// </summary>
         public IList<RecordFileInfoModel> Query(DateTime startTime, DateTime endTime, bool isIgnoringNightFiles)
         {
             var queryStartTime = NET_TIME.FromDateTime(startTime);
             var queryEndTime = NET_TIME.FromDateTime(endTime);
 
             var records = new List<RecordFileInfoModel>();
-            int fileCount = 0;
-            unsafe
+            var fileCount = 0;
+            int allocSize = Marshal.SizeOf(typeof(NET_RECORDFILE_INFO)) * MaxQueryRecords;
+            var recordFileInfoPtr = Marshal.AllocHGlobal(allocSize);
+            var success = OriginalSDK.CLIENT_QueryRecordFile(LoginId, -1, 0, ref queryStartTime, ref queryEndTime, null, recordFileInfoPtr, allocSize, ref fileCount, 25000, false);
+            if (success)
             {
-                int allocSize = Marshal.SizeOf(typeof(NET_RECORDFILE_INFO)) * MaxQueryRecords;
-                var recordFileInfoPtr = Marshal.AllocHGlobal(allocSize);
-                var success = OriginalSDK.CLIENT_QueryRecordFile(LoginId, -1, 0, ref queryStartTime, ref queryEndTime, null, recordFileInfoPtr, allocSize, ref fileCount, 25000, false);
-                if (success)
+                for (var recordId = 0; recordId < fileCount; recordId++)
                 {
-                    for (var recordId = 0; recordId < fileCount; recordId++)
+                    var source = (NET_RECORDFILE_INFO)Marshal.PtrToStructure(IntPtr.Add(recordFileInfoPtr, Marshal.SizeOf(typeof(NET_RECORDFILE_INFO)) * recordId), typeof(NET_RECORDFILE_INFO));
+                    if (IsRecordValid(source, isIgnoringNightFiles))
                     {
-                        var source = (NET_RECORDFILE_INFO)Marshal.PtrToStructure(IntPtr.Add(recordFileInfoPtr, Marshal.SizeOf(typeof(NET_RECORDFILE_INFO)) * recordId), typeof(NET_RECORDFILE_INFO));
-                        if (IsRecordValid(source, isIgnoringNightFiles))
-                        {
-                            var recordFileInfo = new RecordFileInfoModel(source, records.Count + 1);
-                            records.Add(recordFileInfo);
-                        }
+                        var recordFileInfo = new RecordFileInfoModel(source, records.Count + 1);
+                        records.Add(recordFileInfo);
                     }
                 }
-                Marshal.FreeHGlobal(recordFileInfoPtr);
             }
+            Marshal.FreeHGlobal(recordFileInfoPtr);
 
             return records;
         }
@@ -149,6 +156,9 @@ namespace QSeeView.Tools
                 DownloadRecord.ProgressPercentValue = (int)((downloadPos / (double)totalSize) * 100);
         }
 
+        /// <summary>
+        /// Handles download errors
+        /// </summary>
         private void ProcessDownloadError()
         {
             var error = OriginalSDK.CLIENT_GetLastError();
@@ -212,9 +222,17 @@ namespace QSeeView.Tools
             return NETClient.CapturePicture(playbackId, outputFileName, captureFormat);
         }
 
+        /// <summary>
+        /// Live view functions
+        /// </summary>
         public IntPtr StartLiveView(int channelId, IntPtr windowHandle) => NETClient.RealPlay(LoginId, channelId, windowHandle, EM_RealPlayType.Realplay);
-        public void StopLiveView(IntPtr monitorHandle) => NETClient.StopRealPlay(monitorHandle);
+        public void StopLiveView(IntPtr handle) => NETClient.StopRealPlay(handle);
+        public bool SaveRealData(IntPtr handle, string fileName) => NETClient.SaveRealData(handle, fileName);
+        public bool StopSaveRealData(IntPtr handle) => NETClient.StopSaveRealData(handle);
 
+        /// <summary>
+        /// Retrieves information about the hard disk
+        /// </summary>
         public (uint spaceRemaining, uint capacity) GetDiskInfo(int diskId)
         {
             object state = new NET_HARDDISK_STATE();

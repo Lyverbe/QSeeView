@@ -4,18 +4,23 @@
              Startup="ApplicationStartup"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-        <SolidColorBrush x:Key="BackgroundColor" Color="#333333" />
-        <SolidColorBrush x:Key="ForegroundColor" Color="WhiteSmoke" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Light.xaml"/> <!-- Default theme -->
+            </ResourceDictionary.MergedDictionaries>
 
-        <Style TargetType="Button">
-            <Setter Property="Padding" Value="10,2" />
-        </Style>
-        <Style TargetType="CheckBox">
-            <Setter Property="Foreground" Value="{StaticResource ForegroundColor}" />
-        </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
+            <SolidColorBrush x:Key="BackgroundColor" Color="#333333" />
+            <SolidColorBrush x:Key="ForegroundColor" Color="WhiteSmoke" />
 
+            <Style TargetType="Button">
+                <Setter Property="Padding" Value="10,2" />
+            </Style>
+            <Style TargetType="CheckBox">
+                <Setter Property="Foreground" Value="{StaticResource ThemeForegroundBrush}" />
+            </Style>
+            <Style TargetType="TextBox">
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

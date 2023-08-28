@@ -4,13 +4,13 @@
         xmlns:converters="clr-namespace:QSeeView.Converters"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
+        Background="{StaticResource ThemeBackgroundBrush}" Foreground="{StaticResource ThemeForegroundBrush}"
         Title="Settings" Width="400" Height="300">
     <Window.Resources>
         <converters:ChannelIdConverter x:Key="ChannelIdConverter" />
 
         <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource ForegroundColor}" />
+            <Setter Property="Foreground" Value="{StaticResource ThemeForegroundBrush}" />
         </Style>
     </Window.Resources>
     
@@ -20,9 +20,10 @@
             <Button Content="Cancel" Command="{Binding CancelCommand}" Margin="5,0,0,0" />
         </UniformGrid>
 
-        <TabControl Background="{StaticResource BackgroundColor}">
+        <TabControl Background="{StaticResource ThemeBackgroundBrush}">
             <TabItem Header="Miscellaneous">
                 <StackPanel Margin="5">
+                    <CheckBox Content="Dark theme (requires restart)" IsChecked="{Binding IsDarkTheme}" />
                     <CheckBox Content="Automatic login" IsChecked="{Binding IsAutomaticLogin}" />
                     <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
                     <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
@@ -67,7 +68,7 @@
                             <DataTemplate>
                                 <DockPanel Margin="0,1,0,0">
                                     <TextBlock DockPanel.Dock="Left" Text="{Binding ChannelId, Converter={StaticResource ChannelIdConverter}}"
-                                                HorizontalAlignment="Center" MinWidth="15" Foreground="{StaticResource ForegroundColor}" />
+                                                HorizontalAlignment="Center" MinWidth="15" Foreground="{StaticResource ThemeForegroundBrush}" />
                                     <Button DockPanel.Dock="Right" Command="{Binding SetOrientationCommand}" Width="15" Padding="0" ToolTip="Orientation" Margin="2,0,0,0">
                                         <Path Stroke="Black">
                                             <Path.Style>
@@ -107,28 +108,19 @@
             </TabItem>
 
             <TabItem Header="Paths">
-                <Grid Margin="5" VerticalAlignment="Top">
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-
+                <StackPanel Margin="5">
                     <TextBlock Text="Downloads " VerticalAlignment="Center" />
-                    <DockPanel Grid.Column="1">
+                    <DockPanel>
                         <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseDownloadFolderCommand}" />
                         <TextBox Text="{Binding DownloadFolder}" />
                     </DockPanel>
 
-                    <TextBlock Grid.Row="1" Text="FFMPEG " VerticalAlignment="Center" />
-                    <DockPanel Grid.Row="1" Grid.Column="1" Margin="0,2,0,0">
+                    <TextBlock Text="FFMPEG " VerticalAlignment="Center" />
+                    <DockPanel>
                         <Button DockPanel.Dock="Right" Content="..." Margin="5,0,0,0" Command="{Binding BrowseFfmpegPathCommand}" />
                         <TextBox Text="{Binding FfmpegPath}" />
                     </DockPanel>
-                </Grid>
+                </StackPanel>
             </TabItem>
 
             <TabItem Header="File names pattern">

@@ -28,6 +28,7 @@ namespace QSeeView.Views
         {
             if (isOkClicked)
             {
+                App.Settings.ThemeId = _viewModel.IsDarkTheme ? Types.ThemeType.Dark : Types.ThemeType.Light;
                 App.Settings.IsAutomaticLogin = _viewModel.IsAutomaticLogin;
                 App.Settings.IsConvertingToAvi = _viewModel.IsConvertingToAvi;
                 App.Settings.IsAutoQueryAtStartup = _viewModel.IsAutoQueryAtStartup;

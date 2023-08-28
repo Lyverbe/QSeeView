@@ -83,36 +83,13 @@ namespace QSeeView.Tools
 
         private void StartConverter(RecordFileInfoModel recordFileInfo)
         {
-            var process = new Process();
-            process.StartInfo.FileName = App.Settings.FfmpegPath;
-            // For full conversion versus quick header change
-            //process.StartInfo.Arguments = $"-y -r 24 -i \"{DownloadFolder}\\{recordFileInfo.FileName}.dav\" -preset fast -b:v 1000k -c libx264 \"{DownloadFolder}\\{recordFileInfo.FileName}.avi\"";
-            process.StartInfo.Arguments = $"-y -f dhav -i \"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.dav\" -vcodec copy \"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.avi\"";
-            process.StartInfo.UseShellExecute = true;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            process.EnableRaisingEvents = true;
-            process.Exited += (s, e) => Process_Exited(process, recordFileInfo);
-
-#if false   // For debugging ffmpeg
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            var sb = new System.Text.StringBuilder();
-            process.OutputDataReceived += (s, e) => sb.AppendLine(e.Data);
-            process.ErrorDataReceived += (s, e) => sb.AppendLine(e.Data);
-#endif
-
+            var converter = new VideoConverter();
+            converter.ConversionDone += (s, returnCode) => ConversionProcess_Exited(returnCode, recordFileInfo);
             try
             {
-                var success = process.Start();
-#if false   // For debugging ffmpeg
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                process.WaitForExit();
-                var _x = sb.ToString();
-#endif
-                if (success)
+                converter.Convert(recordFileInfo.FileName);
+
+                if (converter.IsConverting)
                     recordFileInfo.ProgressString = "Converting...";
                 else
                 {
@@ -122,29 +99,21 @@ namespace QSeeView.Tools
             }
             catch (Win32Exception exception)
             {
-                DownloadError?.Invoke(this, $"{recordFileInfo}: Conversion process error {process.ExitCode} - {exception.Message}");
+                DownloadError?.Invoke(this, $"{recordFileInfo}: Conversion process error - {exception.Message}");
             }
         }
 
-        private void Process_Exited(Process process, RecordFileInfoModel recordFileInfo)
+        private void ConversionProcess_Exited(int exitCode, RecordFileInfoModel recordFileInfo)
         {
-            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                ConversionProcess_Exited(process, recordFileInfo);
-            }));
-        }
-
-        private void ConversionProcess_Exited(Process process, RecordFileInfoModel recordFileInfo)
-        {
-            if (process.ExitCode == 0)
+            if (exitCode == 0)
             {
                 recordFileInfo.ProgressString = "Done";
                 File.Delete($"{App.Settings.DownloadFolder}\\{recordFileInfo.FileName}.dav");
             }
             else
             {
-                recordFileInfo.ProgressString = "Conversion ended with code " + process.ExitCode;
-                DownloadError?.Invoke(this, recordFileInfo + ": Conversion ended with code " + process.ExitCode);
+                recordFileInfo.ProgressString = "Conversion ended with code " + exitCode;
+                DownloadError?.Invoke(this, recordFileInfo + ": Conversion ended with code " + exitCode);
             }
 
             if (_pendingConversions.Any())

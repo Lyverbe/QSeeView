@@ -15,6 +15,7 @@ namespace QSeeView.ViewModels
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        private bool _isDarkTheme;
         private bool _isAutomaticLogin;
         private bool _isConvertingToAvi;
         private bool _isAutoQueryAtStartup;
@@ -36,6 +37,7 @@ namespace QSeeView.ViewModels
             BrowseDownloadFolderCommand = new RelayCommand(() => BrowseDownloadFolder?.Invoke(this, EventArgs.Empty));
             BrowseFfmpegPathCommand = new RelayCommand(() => BrowseFfmegPath?.Invoke(this, EventArgs.Empty));
 
+            IsDarkTheme = (App.Settings.ThemeId == Types.ThemeType.Dark);
             IsAutomaticLogin = App.Settings.IsAutomaticLogin;
             IsAutoQueryAtStartup = App.Settings.IsAutoQueryAtStartup;
             IsResettingPlaybackSpeed = App.Settings.IsResettingPlaybackSpeed;
@@ -59,6 +61,16 @@ namespace QSeeView.ViewModels
         public ICommand BrowseFfmpegPathCommand { get; }
 
         public IList<ChannelInfoModel> ChannelsInfo { get; set; }
+
+        public bool IsDarkTheme
+        {
+            get => _isDarkTheme;
+            set
+            {
+                _isDarkTheme = value;
+                OnPropertyChanged(nameof(IsDarkTheme));
+            }
+        }
 
         public bool IsAutomaticLogin
         {

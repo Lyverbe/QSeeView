@@ -1,0 +1,10 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Color x:Key="ThemeBackgroundColor">WhiteSmoke</Color>
+    <Color x:Key="ThemeForegroundColor">Black</Color>
+    <Color x:Key="ThemeDimmedColor">DarkGray</Color>
+
+    <SolidColorBrush x:Key="ThemeBackgroundBrush" Color="{StaticResource ThemeBackgroundColor}" />
+    <SolidColorBrush x:Key="ThemeForegroundBrush" Color="{StaticResource ThemeForegroundColor}" />
+    <SolidColorBrush x:Key="ThemeDimmedBrush" Color="{StaticResource ThemeDimmedColor}" />
+</ResourceDictionary>

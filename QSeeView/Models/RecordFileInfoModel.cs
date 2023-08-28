@@ -1,5 +1,6 @@
 ﻿using NetSDKCS;
 using QSeeView.Tools;
+using QSeeView.Types;
 using System;
 using System.ComponentModel;
 using System.Windows.Media;
@@ -49,9 +50,18 @@ namespace QSeeView.Models
             {
                 if (Length >= TimeSpan.FromMinutes(1))
                     return new SolidColorBrush(Colors.Red);
-                if (Length >= TimeSpan.FromSeconds(45))
-                    return new SolidColorBrush(Colors.Yellow);
-                return new SolidColorBrush(Colors.White);
+                if (App.Settings.ThemeId == ThemeType.Dark)
+                {
+                    if (Length >= TimeSpan.FromSeconds(45))
+                        return new SolidColorBrush(Colors.Yellow);
+                    return new SolidColorBrush(Colors.White);
+                }
+                else
+                {
+                    if (Length >= TimeSpan.FromSeconds(45))
+                        return new SolidColorBrush(Colors.DarkGoldenrod);
+                    return new SolidColorBrush(Colors.Black);
+                }
             }
         }
 

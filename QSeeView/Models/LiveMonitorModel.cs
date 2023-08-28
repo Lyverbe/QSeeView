@@ -7,6 +7,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace QSeeView.Models
 {
@@ -14,6 +16,7 @@ namespace QSeeView.Models
     {
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler<ChannelInfoModel> ChannelChanging;
+        public event EventHandler RecordButtonPressed;
 
         private IDeviceManager _deviceManager;
         private double _zoomLevel;
@@ -23,10 +26,12 @@ namespace QSeeView.Models
         private double _horizontalScrollMaximum;
         private double _verticalScrollMaximum;
         private ChannelInfoModel _selectedChannel;
-        private IntPtr _playId;
         private double _width;
         private double _height;
         private bool _isOnline;
+        private bool _isRecording;
+        private Brush _recordButtonBrush;
+        private Timer _recordButtonBrushTimer;
 
         public LiveMonitorModel(IDeviceManager deviceManager, int channelId)
         {
@@ -41,13 +46,25 @@ namespace QSeeView.Models
                 SelectedChannel = App.Settings.ChannelsInfo[channelId];
             else
                 SelectedChannel = Channels.FirstOrDefault(channel => !channel.IsOnline);
+
+            ToggleRecordCommand = new RelayCommand(() => RecordButtonPressed?.Invoke(this, EventArgs.Empty), () => IsOnline);
+
+            ResetRecordButton();
+
+            _recordButtonBrushTimer = new Timer();
+            _recordButtonBrushTimer.Interval = 500;
+            _recordButtonBrushTimer.Tick += RecordButtonBrushTimer_Tick;
         }
 
         public double ZoomLevelMaximum => 2000;
 
+        public ICommand ToggleRecordCommand { get; }
+
+        public IntPtr PlayHandle { get; private set; }
         public WindowsFormsHost Host { get; set; }
         public IEnumerable<ChannelInfoModel> Channels { get; }
         public Size DisplayOriginalSize { get; set; }
+        public string LocalRecordFileName { get; set; }
 
         public bool IsOnline
         {
@@ -162,6 +179,32 @@ namespace QSeeView.Models
             }
         }
 
+        public bool IsRecording
+        {
+            get => _isRecording;
+            set
+            {
+                _isRecording = value;
+                if (IsRecording)
+                    _recordButtonBrushTimer.Start();
+                else
+                {
+                    _recordButtonBrushTimer.Stop();
+                    ResetRecordButton();
+                }
+            }
+        }
+
+        public Brush RecordButtonBrush
+        {
+            get => _recordButtonBrush;
+            set
+            {
+                _recordButtonBrush = value;
+                OnPropertyChanged(nameof(RecordButtonBrush));
+            }
+        }
+
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private void OnZoomLevelChanged()
@@ -239,16 +282,27 @@ namespace QSeeView.Models
         public void StartLiveView()
         {
             if (Host?.Child != null)
-                _playId = _deviceManager.StartLiveView(SelectedChannel.ChannelId, (Host.Child as PictureBox).Handle);
+                PlayHandle = _deviceManager.StartLiveView(SelectedChannel.ChannelId, (Host.Child as PictureBox).Handle);
         }
 
         public void StopLiveView()
         {
-            if (_playId != IntPtr.Zero)
+            if (PlayHandle != IntPtr.Zero)
             {
-                _deviceManager.StopLiveView(_playId);
-                _playId = IntPtr.Zero;
+                _deviceManager.StopLiveView(PlayHandle);
+                PlayHandle = IntPtr.Zero;
             }
         }
+
+        private void RecordButtonBrushTimer_Tick(object sender, EventArgs e)
+        {
+            var solidColorBrush = RecordButtonBrush as SolidColorBrush;
+            if (solidColorBrush.Color.R == 255)
+                RecordButtonBrush = new SolidColorBrush(Color.FromRgb(128, 0, 0));
+            else
+                ResetRecordButton();
+        }
+
+        private void ResetRecordButton() => RecordButtonBrush = new SolidColorBrush(Color.FromRgb(255, 0, 0));
     }
 }

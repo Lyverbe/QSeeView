@@ -31,6 +31,8 @@ namespace QSeeView.Tools
 
         IntPtr StartLiveView(int channelId, IntPtr windowHandle);
         void StopLiveView(IntPtr monitorHandle);
+        bool SaveRealData(IntPtr handle, string fileName);
+        bool StopSaveRealData(IntPtr handle);
 
         (uint spaceRemaining, uint capacity) GetDiskInfo(int diskId);
     }

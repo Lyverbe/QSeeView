@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         WindowStartupLocation="CenterOwner" WindowState="Maximized" 
-        Background="{StaticResource BackgroundColor}" Foreground="{StaticResource ForegroundColor}"
-        Title="Live" Height="450" Width="800" MinHeight="200" MinWidth="200">
+        Background="{StaticResource ThemeBackgroundBrush}" Foreground="{StaticResource ThemeForegroundBrush}"
+        Title="Live" Height="450" Width="800" MinHeight="200" MinWidth="800">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
@@ -17,23 +17,27 @@
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
             <DataTemplate>
-                <DockPanel>
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
-                        <Slider Width="300" HorizontalAlignment="Center" IsEnabled="{Binding IsOnline}"
-                            Minimum="0" Maximum="{Binding ZoomLevelMaximum}" Value="{Binding ZoomLevel}" />
-                        <TextBlock Text="Channel " VerticalAlignment="Center" Margin="10,0,0,0" />
-                        <ComboBox Width="100" ItemsSource="{Binding Channels}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedChannel}" />
-                    </StackPanel>
-                    <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
+                <Border BorderBrush="DarkGreen" BorderThickness="1">
+                    <DockPanel>
+                        <DockPanel DockPanel.Dock="Bottom" Margin="100,0">
+                            <Button DockPanel.Dock="Right" Command="{Binding ToggleRecordCommand}" Margin="5,0,0,0" Padding="2" ToolTip="Record">
+                                <Ellipse Width="10" Height="10" Stroke="DarkRed" Fill="{Binding RecordButtonBrush}" />
+                            </Button>
+                            <ComboBox DockPanel.Dock="Right" Width="100" ItemsSource="{Binding Channels}" DisplayMemberPath="Name" SelectedItem="{Binding SelectedChannel}" />
+                            <TextBlock DockPanel.Dock="Right" Text="Channel " VerticalAlignment="Center" Margin="10,0,0,0" />
+                            <Slider IsEnabled="{Binding IsOnline}" Minimum="0" Maximum="{Binding ZoomLevelMaximum}" Value="{Binding ZoomLevel}" />
+                        </DockPanel>
+                        <ScrollBar DockPanel.Dock="Bottom" Orientation="Horizontal" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
                                Minimum="0" Maximum="{Binding HorizontalScrollMaximum}" Value="{Binding HorizontalScrollValue}" />
-                    <ScrollBar DockPanel.Dock="Right" Orientation="Vertical" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        <ScrollBar DockPanel.Dock="Right" Orientation="Vertical" Visibility="{Binding ShowScrollBars, Converter={StaticResource BooleanToVisibilityConverter}}"
                                Minimum="0" Maximum="{Binding VerticalScrollMaximum}" Value="{Binding VerticalScrollValue}" />
-                    <Viewbox Margin="2" Visibility="{Binding IsOnline, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <WindowsFormsHost Width="{Binding Width}" Height="{Binding Height}">
-                            <wf:PictureBox />
-                        </WindowsFormsHost>
-                    </Viewbox>
-                </DockPanel>
+                        <Viewbox Margin="2" Visibility="{Binding IsOnline, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <WindowsFormsHost Width="{Binding Width}" Height="{Binding Height}">
+                                <wf:PictureBox />
+                            </WindowsFormsHost>
+                        </Viewbox>
+                    </DockPanel>
+                </Border>
             </DataTemplate>
         </ItemsControl.ItemTemplate>
     </ItemsControl>
