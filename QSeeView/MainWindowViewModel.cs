@@ -22,15 +22,13 @@ namespace QSeeView
         public event EventHandler<Button> FilterChannels;
         public event EventHandler Close;
         public event EventHandler ExportQuery;
+        public event EventHandler HardDiskInfo;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
         private DateTime _startDateTime;
         private DateTime _endDateTime;
-        private bool _isRecordsListEnabled;
-        private bool _isQueryEnabled;
         private string _downloadCommandString;
-        private bool _isDownloadFolderEnabled;
         private bool _checkAll;
         private string _statusBarInfo;
         private StateType _state;
@@ -38,7 +36,6 @@ namespace QSeeView
         private double _taskbarProgressValue;
         private IList<RecordFileInfoModel> _records;
         private string _datesOffsetString;
-        private string _hddSpaceInfo;
 
         public MainWindowViewModel()
         {
@@ -55,13 +52,13 @@ namespace QSeeView
             FilterChannelsCommand = new RelayCommand<Button>((button) => FilterChannels?.Invoke(this, button));
             ExitCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
             ExportQueryCommand = new RelayCommand(() => ExportQuery?.Invoke(this, EventArgs.Empty), () => Records != null && Records.Any());
+            HardDiskInfoCommand = new RelayCommand(() => HardDiskInfo?.Invoke(this, EventArgs.Empty));
 
             State = StateType.Idle;
 
             DatesOffsetString = App.Settings.StartDatesOffset.ToString();
             StartDateTime = DateTime.Now.Date.AddDays(-DatesOffset);
             EndDateTime = DateTime.Now.Date.AddDays(-DatesOffset + 1);
-            StatusBarInfo = "Ready";
         }
 
         public ICommand QueryCommand { get; }
@@ -76,6 +73,7 @@ namespace QSeeView
         public ICommand FilterChannelsCommand { get; }
         public ICommand ExitCommand { get;}
         public ICommand ExportQueryCommand { get; }
+        public ICommand HardDiskInfoCommand { get; }
 
         public ObservableCollection<string> DownloadErrors { get; private set; }
         public int TotalDownloadCount { get; set; }
@@ -130,36 +128,6 @@ namespace QSeeView
             }
         }
 
-        public bool IsRecordsListEnabled
-        {
-            get => _isRecordsListEnabled;
-            set
-            {
-                _isRecordsListEnabled = value;
-                OnPropertyChanged(nameof(IsRecordsListEnabled));
-            }
-        }
-
-        public bool IsQueryEnabled
-        {
-            get => _isQueryEnabled;
-            set
-            {
-                _isQueryEnabled = value;
-                OnPropertyChanged(nameof(IsQueryEnabled));
-            }
-        }
-
-        public bool IsDownloadFolderEnabled
-        {
-            get => _isDownloadFolderEnabled;
-            set
-            {
-                _isDownloadFolderEnabled = value;
-                OnPropertyChanged(nameof(IsDownloadFolderEnabled));
-            }
-        }
-
         public bool CheckAll
         {
             get => _checkAll;
@@ -182,7 +150,6 @@ namespace QSeeView
                 _state = value;
                 OnPropertyChanged(nameof(State));
                 OnPropertyChanged(nameof(IsIdle));
-                DownloadCommandString = IsIdle ? "Download selected" : "Stop downloads";
             }
         }
 
@@ -223,16 +190,6 @@ namespace QSeeView
         }
         private int DatesOffset { get; set; }
 
-        public string HddSpaceInfo
-        {
-            get => _hddSpaceInfo;
-            set
-            {
-                _hddSpaceInfo = value;
-                OnPropertyChanged(nameof(HddSpaceInfo));
-            }
-        }
-
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private void OnDownloadOrStop()
@@ -267,5 +224,7 @@ namespace QSeeView
             if (DatesOffset + delta >= 0)
                 DatesOffsetString = (DatesOffset + delta).ToString();
         }
+
+        public void UpdateDownloadButtonTooltip() => DownloadCommandString = (State == StateType.Downloading) ? "Stop downloads" : "Download selected";
     }
 }

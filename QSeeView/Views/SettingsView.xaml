@@ -39,6 +39,16 @@
                             <Run Text="columns" />
                         </TextBlock>
                     </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Display warning if a HDD space is less or equal " />
+                        <TextBox Text="{Binding HddPercentSpaceWarning}" Width="25" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                        <TextBlock Text="%" />
+
+                        <Grid Margin="5,0,0,0">
+                            <TextBlock x:Name="InfoTextBlock" Text="  i  " Foreground="LightGray" ToolTip="Enter 0 to disable warning" />
+                            <Ellipse Stroke="{Binding Foreground, ElementName=InfoTextBlock}" Width="14" Height="14" />
+                        </Grid>
+                    </StackPanel>
                 </StackPanel>
             </TabItem>
 
@@ -56,7 +66,7 @@
                         <TextBlock Text="Default start dates offset is " />
                         <TextBox Text="{Binding StartDatesOffset}" Width="25" HorizontalAlignment="Left"
                                  PreviewTextInput="IntTextBox_PreviewTextInput"/>
-                        <TextBlock Text=" days" />
+                        <TextBlock Text=" day(s)" />
                     </StackPanel>
                 </StackPanel>
             </TabItem>

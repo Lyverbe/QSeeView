@@ -54,6 +54,8 @@ namespace QSeeView.Views
             _pictureBox = FindPictureBox(this);
             _pictureBox.BorderStyle = BorderStyle.FixedSingle;
             _pictureBox.Refresh();
+
+            _pictureBox.Click += (s, ee) => _viewModel.IsPaused = !_viewModel.IsPaused;
         }
 
         protected override void OnClosed(EventArgs e)

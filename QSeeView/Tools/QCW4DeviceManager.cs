@@ -60,7 +60,7 @@ namespace QSeeView.Tools
         /// <summary>
         /// Performs a record query
         /// </summary>
-        public IList<RecordFileInfoModel> Query(DateTime startTime, DateTime endTime, bool isIgnoringNightFiles)
+        public IList<RecordFileInfoModel> Query(DateTime startTime, DateTime endTime)
         {
             var queryStartTime = NET_TIME.FromDateTime(startTime);
             var queryEndTime = NET_TIME.FromDateTime(endTime);
@@ -75,7 +75,7 @@ namespace QSeeView.Tools
                 for (var recordId = 0; recordId < fileCount; recordId++)
                 {
                     var source = (NET_RECORDFILE_INFO)Marshal.PtrToStructure(IntPtr.Add(recordFileInfoPtr, Marshal.SizeOf(typeof(NET_RECORDFILE_INFO)) * recordId), typeof(NET_RECORDFILE_INFO));
-                    if (IsRecordValid(source, isIgnoringNightFiles))
+                    if (source.bRecType == (int)StreamRecordType.MainStream)
                     {
                         var recordFileInfo = new RecordFileInfoModel(source, records.Count + 1);
                         records.Add(recordFileInfo);
@@ -85,31 +85,6 @@ namespace QSeeView.Tools
             Marshal.FreeHGlobal(recordFileInfoPtr);
 
             return records;
-        }
-
-        /// <summary>
-        /// Determines if the record successfully passes all filters
-        /// </summary>
-        private bool IsRecordValid(NET_RECORDFILE_INFO source, bool isIgnoringNightFiles)
-        {
-            if (source.bRecType != (int)StreamRecordType.MainStream)
-                return false;
-
-            if (isIgnoringNightFiles)
-            {
-                if (App.Settings.NightFilesStartHour < App.Settings.NightFilesEndHour)  // Ex. Between 1h00 and 6h00
-                {
-                    if (source.starttime.dwHour >= App.Settings.NightFilesStartHour && source.starttime.dwHour < App.Settings.NightFilesEndHour)
-                        return false;
-                }
-                else // Ex. Between 23h00 and 6h00
-                {
-                    if (source.starttime.dwHour >= App.Settings.NightFilesStartHour || source.starttime.dwHour < App.Settings.NightFilesEndHour)
-                        return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -233,15 +208,25 @@ namespace QSeeView.Tools
         /// <summary>
         /// Retrieves information about the hard disk
         /// </summary>
-        public (uint spaceRemaining, uint capacity) GetDiskInfo(int diskId)
+        public IEnumerable<HardDiskInfoModel> GetHardDiskInfo()
         {
             object state = new NET_HARDDISK_STATE();
             NETClient.QueryDevState(LoginId, (int)EM_DEVICE_STATE.DISK, ref state, typeof(NET_HARDDISK_STATE), 1000);
 
-            var hddState = (NET_HARDDISK_STATE)state;
-            if (diskId > hddState.stDisks.Length)
-                throw new ArgumentOutOfRangeException(nameof(diskId));
-            return (hddState.stDisks[diskId].dwFreeSpace, hddState.stDisks[diskId].dwVolume);
+            var hddStates = (NET_HARDDISK_STATE)state;
+            var hardDiskInfo = new List<HardDiskInfoModel>();
+            foreach (var hddState in hddStates.stDisks)
+            {
+                var model = new HardDiskInfoModel()
+                {
+                    Id = hardDiskInfo.Count + 1,
+                    Capacity = hddState.dwVolume,
+                    FreeSpace = hddState.dwFreeSpace
+                };
+                hardDiskInfo.Add(model);
+            }
+
+            return hardDiskInfo;
         }
     }
 }

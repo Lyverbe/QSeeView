@@ -15,6 +15,11 @@
         </Style>
         <Style TargetType="Path">
             <Setter Property="Fill" Value="Black" />
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Fill" Value="Gray" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
     

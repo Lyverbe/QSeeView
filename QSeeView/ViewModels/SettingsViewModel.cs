@@ -27,6 +27,7 @@ namespace QSeeView.ViewModels
         private string _fileNamesOutputExample;
         private int _liveViewRowsCount;
         private int _liveViewColumnsCount;
+        private int? _hddPercentSpaceWarning;
 
         public SettingsViewModel()
         {
@@ -53,6 +54,7 @@ namespace QSeeView.ViewModels
             LiveViewSize = App.Settings.LiveViewSize;
             IsAutoOpenDownloads = App.Settings.IsAutoOpenDownloads;
             DoPlayDownloadsCompleteSound = App.Settings.DoPlayDownloadsCompleteSound;
+            HddPercentSpaceWarning = App.Settings.HddPercentSpaceWarning;
         }
 
         public ICommand OkCommand { get; }
@@ -170,6 +172,16 @@ namespace QSeeView.ViewModels
             {
                 _liveViewColumnsCount = LimitLiveViewGridSize(value);
                 OnPropertyChanged(nameof(LiveViewColumnsCount));
+            }
+        }
+
+        public int? HddPercentSpaceWarning
+        {
+            get => _hddPercentSpaceWarning;
+            set
+            {
+                _hddPercentSpaceWarning = (value <= 100) ? value : 100;
+                OnPropertyChanged(nameof(HddPercentSpaceWarning));
             }
         }
 

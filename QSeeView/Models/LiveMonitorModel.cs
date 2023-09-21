@@ -228,7 +228,8 @@ namespace QSeeView.Models
 
                 HorizontalScrollMaximum = pictureBox.Width - DisplayOriginalSize.Width;
                 VerticalScrollMaximum = pictureBox.Height - DisplayOriginalSize.Height;
-                ShowScrollBars = true;
+                if (!ShowScrollBars)
+                    ShowScrollBars = true;
 
                 var restrictedOffsets = RestrictImageOffsets(HorizontalScrollValue, VerticalScrollValue);
                 if (restrictedOffsets.X != HorizontalScrollValue)

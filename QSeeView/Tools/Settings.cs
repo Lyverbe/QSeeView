@@ -21,6 +21,8 @@ namespace QSeeView.Tools
             NightFilesEndHour = 6;
             FileNamesPattern = "%Y-%M-%D_%Hh%Nm%S_ch%c";
             LiveViewSize = 2;
+            DevicePort = 37777;
+            HddPercentSpaceWarning = 5;
         }
 
         [DataMember]
@@ -65,6 +67,8 @@ namespace QSeeView.Tools
         public int LastPlaybackCaptureFormat { get; set; }
         [DataMember]
         public ThemeType ThemeId { get; set; }
+        [DataMember]
+        public int? HddPercentSpaceWarning { get; set; }
 
         public string Password { get; set; }
 
@@ -78,8 +82,11 @@ namespace QSeeView.Tools
         [OnSerializing]
         private void OnSerializing(StreamingContext context)
         {
-            var bytes = Encoding.UTF8.GetBytes(Password);
-            EncodedPassword = Convert.ToBase64String(bytes);
+            if (!string.IsNullOrEmpty(Password))
+            {
+                var bytes = Encoding.UTF8.GetBytes(Password);
+                EncodedPassword = Convert.ToBase64String(bytes);
+            }
         }
 
         [OnDeserialized]
@@ -97,6 +104,8 @@ namespace QSeeView.Tools
                 FileNamesPattern = "%Y-%M-%D_%Hh%Nm%S_ch%c";
             if (LiveViewSize == 0)
                 LiveViewSize = 2;
+            if (!HddPercentSpaceWarning.HasValue)
+                HddPercentSpaceWarning = 5;
         }
 
         private void DecodePassword()

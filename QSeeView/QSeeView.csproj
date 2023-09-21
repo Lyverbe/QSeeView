@@ -112,6 +112,7 @@
     </ApplicationDefinition>
     <Compile Include="Converters\ChannelIdConverter.cs" />
     <Compile Include="Models\CaptureFormatModel.cs" />
+    <Compile Include="Models\HardDiskInfoModel.cs" />
     <Compile Include="Models\LiveMonitorModel.cs" />
     <Compile Include="Models\ChannelInfoModel.cs" />
     <Compile Include="Tools\QueryExporter.cs" />
@@ -127,12 +128,16 @@
     <Compile Include="Types\StreamRecordType.cs" />
     <Compile Include="Types\ThemeType.cs" />
     <Compile Include="ViewModels\FilterChannelsViewModel.cs" />
+    <Compile Include="ViewModels\HardDiskInfoViewModel.cs" />
     <Compile Include="ViewModels\LiveViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\SaveSnapshotSettingsViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Views\FilterChannelsView.xaml.cs">
       <DependentUpon>FilterChannelsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\HardDiskInfoView.xaml.cs">
+      <DependentUpon>HardDiskInfoView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\LiveView.xaml.cs">
       <DependentUpon>LiveView.xaml</DependentUpon>
@@ -167,6 +172,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\FilterChannelsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\HardDiskInfoView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -233,6 +242,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DownloadsComplete.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ToDo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

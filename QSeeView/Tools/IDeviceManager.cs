@@ -19,7 +19,7 @@ namespace QSeeView.Tools
 
         void Login(string deviceIp, ushort devicePort, string username, string password);
         void Shutdown();
-        IList<RecordFileInfoModel> Query(DateTime startTime, DateTime endTime, bool isIgnoringNightFiles);
+        IList<RecordFileInfoModel> Query(DateTime startTime, DateTime endTime);
 
         void DownloadStart(RecordFileInfoModel record);
         void DownloadStop();
@@ -34,6 +34,6 @@ namespace QSeeView.Tools
         bool SaveRealData(IntPtr handle, string fileName);
         bool StopSaveRealData(IntPtr handle);
 
-        (uint spaceRemaining, uint capacity) GetDiskInfo(int diskId);
+        IEnumerable<HardDiskInfoModel> GetHardDiskInfo();
     }
 }

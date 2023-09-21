@@ -43,6 +43,7 @@ namespace QSeeView.Views
                 App.Settings.LiveViewSize = _viewModel.LiveViewSize;
                 App.Settings.IsAutoOpenDownloads = _viewModel.IsAutoOpenDownloads;
                 App.Settings.DoPlayDownloadsCompleteSound = _viewModel.DoPlayDownloadsCompleteSound;
+                App.Settings.HddPercentSpaceWarning = _viewModel.HddPercentSpaceWarning;
             }
 
             DialogResult = isOkClicked;

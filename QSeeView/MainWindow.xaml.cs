@@ -13,12 +13,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-/*
-To-do
-- Offer to restart when theme changed
-- Handle multiple HDD
-*/
-
 namespace QSeeView
 {
     public partial class MainWindow : Window
@@ -52,6 +46,7 @@ namespace QSeeView
             _viewModel.FilterChannels += ViewModel_FilterChannels;
             _viewModel.Close += (s, e) => Close();
             _viewModel.ExportQuery += ViewModel_ExportQuery;
+            _viewModel.HardDiskInfo += ViewModel_HardDiskInfo;
 
             _deviceManager.DownloadCompleted += DeviceManager_DownloadCompleted;
 
@@ -67,6 +62,7 @@ namespace QSeeView
             Title = $"{name} v{version}";
 
             SubscribeListVisibilityChanged();
+            ClearStatusBar();
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -80,10 +76,7 @@ namespace QSeeView
                 Close();
             }
             else if (App.Settings.IsAutoQueryAtStartup)
-            {
                 Query();
-                UpdateDiskInfo();
-            }
         }
 
         protected override void OnClosed(EventArgs e)
@@ -134,9 +127,10 @@ namespace QSeeView
             if (!canQuery)
                 return;
 
+            Mouse.OverrideCursor = Cursors.Wait;
             _queryManager.Run(_viewModel.StartDateTime, _viewModel.EndDateTime);
-            _queryManager.FilterResult();
-            _viewModel.Records = _queryManager.FilteredResult.ToList();
+            _viewModel.Records = _queryManager.FilterResult();
+            Mouse.OverrideCursor = null;
 
             if (_viewModel.Records.Count >= _deviceManager.MaxQueryRecords)
                 MessageBox.Show($"Limit of {_deviceManager.MaxQueryRecords} records has been reached. Some files may be missing.", "Query");
@@ -163,7 +157,10 @@ namespace QSeeView
             };
             var isOkClicked = view.ShowDialog();
             if (isOkClicked == true)
+            {
                 _viewModel.Records?.ToList().ForEach(record => record.RefreshChannelNames());
+                ClearStatusBar();   // Update for HDD space warning
+            }
         }
 
         private void ShowLiveView()
@@ -188,6 +185,7 @@ namespace QSeeView
                 _downloader.StartDownloads(recordsToDownload);
                 _viewModel.State = StateType.Downloading;
                 _viewModel.TotalDownloadCount = _downloader.PendingDownloads.Count();
+                _viewModel.UpdateDownloadButtonTooltip();
             }
         }
 
@@ -207,6 +205,7 @@ namespace QSeeView
             _downloader.StopDownload();
             _viewModel.State = StateType.Idle;
             _viewModel.TaskbarProgressValue = 0;
+            _viewModel.UpdateDownloadButtonTooltip();
         }
 
         /// <summary>
@@ -229,8 +228,9 @@ namespace QSeeView
         private void Downloader_DownloadsCompleted(object sender, EventArgs e)
         {
             _viewModel.State = StateType.Idle;
-            _viewModel.StatusBarInfo = "Ready";
+            ClearStatusBar();
             _viewModel.TaskbarProgressValue = 0;
+            _viewModel.UpdateDownloadButtonTooltip();
 
             if (App.Settings.IsAutoOpenDownloads)
                 Process.Start(App.Settings.DownloadFolder);
@@ -333,10 +333,25 @@ namespace QSeeView
             }
         }
 
-        private void UpdateDiskInfo()
+        private void ViewModel_HardDiskInfo(object sender, EventArgs e)
         {
-            var diskInfo = _deviceManager.GetDiskInfo(0);
-            _viewModel.HddSpaceInfo = $"Disk space: {diskInfo.spaceRemaining / 1024}G/{diskInfo.capacity / 1024}G";
+            new HardDiskInfoView(_deviceManager)
+            {
+                Owner = this
+            }.ShowDialog();
+        }
+
+        private void ClearStatusBar()
+        {
+            var text = "Ready";
+            if (App.Settings.HddPercentSpaceWarning > 0)
+            {
+                var hddsInfo = _deviceManager.GetHardDiskInfo();
+                if (hddsInfo.Any(hddInfo => (hddInfo.FreeSpace / (double)hddInfo.Capacity) * 100 < App.Settings.HddPercentSpaceWarning))
+                    text = $"WARNING: At least one of the hard disk drive is below {App.Settings.HddPercentSpaceWarning}%";
+            }
+
+            _viewModel.StatusBarInfo = text;
         }
     }
 }
