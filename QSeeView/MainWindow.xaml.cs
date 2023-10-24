@@ -160,6 +160,8 @@ namespace QSeeView
             {
                 _viewModel.Records?.ToList().ForEach(record => record.RefreshChannelNames());
                 ClearStatusBar();   // Update for HDD space warning
+                if (view.RefreshQuery)
+                    Query();
             }
         }
 

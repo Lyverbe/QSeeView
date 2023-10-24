@@ -48,17 +48,17 @@ namespace QSeeView.Models
         {
             get
             {
-                if (Length >= TimeSpan.FromMinutes(1))
+                if (Length.TotalSeconds >= App.Settings.QueryRedColorSeconds)
                     return new SolidColorBrush(Colors.Red);
                 if (App.Settings.ThemeId == ThemeType.Dark)
                 {
-                    if (Length >= TimeSpan.FromSeconds(45))
+                    if (Length.TotalSeconds >= App.Settings.QueryYellowColorSeconds)
                         return new SolidColorBrush(Colors.Yellow);
                     return new SolidColorBrush(Colors.White);
                 }
                 else
                 {
-                    if (Length >= TimeSpan.FromSeconds(45))
+                    if (Length.TotalSeconds >= App.Settings.QueryYellowColorSeconds)
                         return new SolidColorBrush(Colors.DarkGoldenrod);
                     return new SolidColorBrush(Colors.Black);
                 }

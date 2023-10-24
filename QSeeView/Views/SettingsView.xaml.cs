@@ -24,10 +24,15 @@ namespace QSeeView.Views
             _viewModel.BrowseFfmegPath += ViewModel_BrowseFfmegPath;
         }
 
+        public bool RefreshQuery { get; private set; }
+
         private void ViewModel_Close(object sender, bool isOkClicked)
         {
             if (isOkClicked)
             {
+                RefreshQuery = (_viewModel.QueryYellowColorSeconds != App.Settings.QueryYellowColorSeconds) ||
+                               (_viewModel.QueryRedColorSeconds != App.Settings.QueryRedColorSeconds);
+
                 App.Settings.ThemeId = _viewModel.IsDarkTheme ? Types.ThemeType.Dark : Types.ThemeType.Light;
                 App.Settings.IsAutomaticLogin = _viewModel.IsAutomaticLogin;
                 App.Settings.IsConvertingToAvi = _viewModel.IsConvertingToAvi;
@@ -44,6 +49,8 @@ namespace QSeeView.Views
                 App.Settings.IsAutoOpenDownloads = _viewModel.IsAutoOpenDownloads;
                 App.Settings.DoPlayDownloadsCompleteSound = _viewModel.DoPlayDownloadsCompleteSound;
                 App.Settings.HddPercentSpaceWarning = _viewModel.HddPercentSpaceWarning;
+                App.Settings.QueryYellowColorSeconds = _viewModel.QueryYellowColorSeconds;
+                App.Settings.QueryRedColorSeconds = _viewModel.QueryRedColorSeconds;
             }
 
             DialogResult = isOkClicked;

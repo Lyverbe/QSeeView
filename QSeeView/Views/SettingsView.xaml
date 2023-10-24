@@ -68,6 +68,32 @@
                                  PreviewTextInput="IntTextBox_PreviewTextInput"/>
                         <TextBlock Text=" day(s)" />
                     </StackPanel>
+
+                    <GroupBox Header="Length color">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition Height="2" />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Text="Yellow " />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBox Text="{Binding QueryYellowColorSeconds}" Width="30" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                                <TextBlock Text=" seconds" />
+                            </StackPanel>
+                            
+                            <TextBlock Grid.Row="2" Text="Red " />
+                            <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                                <TextBox Text="{Binding QueryRedColorSeconds}" Width="30" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                                <TextBlock Text=" seconds" />
+                            </StackPanel>
+                        </Grid>
+                    </GroupBox>
                 </StackPanel>
             </TabItem>
 

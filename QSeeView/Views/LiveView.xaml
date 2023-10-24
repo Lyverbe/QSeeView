@@ -4,7 +4,7 @@
         xmlns:wf="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
         WindowStartupLocation="CenterOwner" WindowState="Maximized" 
         Background="{StaticResource ThemeBackgroundBrush}" Foreground="{StaticResource ThemeForegroundBrush}"
-        Title="Live" Height="450" Width="800" MinHeight="200" MinWidth="800">
+        Title="Live" Height="450" Width="800" MinHeight="200" MinWidth="400">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>

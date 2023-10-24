@@ -8,6 +8,13 @@
     <SolidColorBrush x:Key="ThemeForegroundBrush" Color="{StaticResource ThemeForegroundColor}" />
     <SolidColorBrush x:Key="ThemeDimmedBrush" Color="{StaticResource ThemeDimmedColor}" />
 
+    <LinearGradientBrush x:Key="ProgressBarGradientMask" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#88ffffff" Offset="0.0" />
+        <GradientStop Color="#00ffffff" Offset="0.4" />
+        <GradientStop Color="#00ffffff" Offset="0.6" />
+        <GradientStop Color="#88ffffff" Offset="1.0" />
+    </LinearGradientBrush>
+
     <Style x:Key="ListViewItemStyle" TargetType="ListViewItem">
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">

@@ -76,6 +76,16 @@
         </StackPanel>
 
         <StatusBar DockPanel.Dock="Bottom" Margin="0,5,0,0">
+            <StatusBar.Style>
+                <Style TargetType="StatusBar">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsDarkTheme}" Value="true">
+                            <Setter Property="Background" Value="{StaticResource ThemeDimmedBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource ThemeForegroundBrush}" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StatusBar.Style>
             <StatusBarItem HorizontalContentAlignment="Stretch">
                 <TextBlock Text="{Binding StatusBarInfo}" />
             </StatusBarItem>
@@ -115,8 +125,7 @@
 
             <StackPanel DockPanel.Dock="Bottom" Margin="0,5,0,0" Visibility="{Binding IsErrorSectionVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <TextBlock Text="Download errors" />
-                <ListBox ItemsSource="{Binding DownloadErrors}" Height="50" Background="Red" Foreground="White">
-                </ListBox>
+                <ListBox ItemsSource="{Binding DownloadErrors}" Height="50" Background="Red" Foreground="White" />
             </StackPanel>
 
             <ListView x:Name="RecordsList" ItemsSource="{Binding Records}" Margin="0,5,0,0"
@@ -184,7 +193,10 @@
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
-                                        <ProgressBar Value="{Binding ProgressPercentValue}" Background="DarkGray" />
+                                        <Grid>
+                                            <ProgressBar Value="{Binding ProgressPercentValue}" Background="DarkGray" />
+                                            <Border Background="White" OpacityMask="{StaticResource ProgressBarGradientMask}" />
+                                        </Grid>
                                         <TextBlock Text="{Binding ProgressString}" HorizontalAlignment="Center" />
                                     </Grid>
                                 </DataTemplate>

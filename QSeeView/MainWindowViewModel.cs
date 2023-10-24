@@ -189,6 +189,7 @@ namespace QSeeView
             }
         }
         private int DatesOffset { get; set; }
+        public bool IsDarkTheme => App.Settings.ThemeId == ThemeType.Dark;
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

@@ -113,7 +113,10 @@ namespace QSeeView.Tools
             else
             {
                 recordFileInfo.ProgressString = "Conversion ended with code " + exitCode;
-                DownloadError?.Invoke(this, recordFileInfo + ": Conversion ended with code " + exitCode);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    DownloadError?.Invoke(this, recordFileInfo.FileName + ": Conversion ended with code " + exitCode);
+                });
             }
 
             if (_pendingConversions.Any())

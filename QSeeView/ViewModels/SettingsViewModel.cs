@@ -28,6 +28,8 @@ namespace QSeeView.ViewModels
         private int _liveViewRowsCount;
         private int _liveViewColumnsCount;
         private int? _hddPercentSpaceWarning;
+        private int _queryYellowColorSeconds;
+        private int _queryRedColorSeconds;
 
         public SettingsViewModel()
         {
@@ -55,6 +57,8 @@ namespace QSeeView.ViewModels
             IsAutoOpenDownloads = App.Settings.IsAutoOpenDownloads;
             DoPlayDownloadsCompleteSound = App.Settings.DoPlayDownloadsCompleteSound;
             HddPercentSpaceWarning = App.Settings.HddPercentSpaceWarning;
+            _queryYellowColorSeconds = App.Settings.QueryYellowColorSeconds;
+            _queryRedColorSeconds = App.Settings.QueryRedColorSeconds;
         }
 
         public ICommand OkCommand { get; }
@@ -190,6 +194,16 @@ namespace QSeeView.ViewModels
 
         public int NightFilesStartHour { get; set; }
         public int NightFilesEndHour { get; set; }
+        public int QueryYellowColorSeconds
+        {
+            get => _queryYellowColorSeconds;
+            set => _queryYellowColorSeconds = (value > QueryRedColorSeconds) ? QueryRedColorSeconds : value;
+        }
+        public int QueryRedColorSeconds
+        {
+            get => _queryRedColorSeconds;
+            set => _queryRedColorSeconds = (value < QueryYellowColorSeconds) ? QueryYellowColorSeconds : value;
+        }
 
         public int StartDatesOffset { get; set; }
 

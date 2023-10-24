@@ -21,6 +21,7 @@ namespace QSeeView.Tools
             _downloadPosCallBack = new fDownLoadPosCallBack(DownloadPosCallback);
         }
 
+        public DeviceModelType DeviceModelType => DeviceModelType.QCW4;
         public bool IsConnected => _isInitialized && LoginId != IntPtr.Zero;
         public IntPtr LoginId { get; private set;  }
         public int MaxQueryRecords => 5000;

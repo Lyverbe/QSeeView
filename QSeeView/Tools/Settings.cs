@@ -23,6 +23,8 @@ namespace QSeeView.Tools
             LiveViewSize = 2;
             DevicePort = 37777;
             HddPercentSpaceWarning = 5;
+            QueryYellowColorSeconds = 45;
+            QueryRedColorSeconds = 60;
         }
 
         [DataMember]
@@ -69,6 +71,10 @@ namespace QSeeView.Tools
         public ThemeType ThemeId { get; set; }
         [DataMember]
         public int? HddPercentSpaceWarning { get; set; }
+        [DataMember]
+        public int QueryYellowColorSeconds { get; set; }
+        [DataMember]
+        public int QueryRedColorSeconds { get; set; }
 
         public string Password { get; set; }
 
@@ -99,6 +105,11 @@ namespace QSeeView.Tools
             {
                 NightFilesStartHour = 23;
                 NightFilesEndHour = 6;
+            }
+            if (QueryYellowColorSeconds == 0 && QueryRedColorSeconds == 0)
+            {
+                QueryYellowColorSeconds = 45;
+                QueryRedColorSeconds = 60;
             }
             if (string.IsNullOrEmpty(FileNamesPattern))
                 FileNamesPattern = "%Y-%M-%D_%Hh%Nm%S_ch%c";

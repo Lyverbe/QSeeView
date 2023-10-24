@@ -243,8 +243,5 @@
   <ItemGroup>
     <None Include="DownloadsComplete.wav" />
   </ItemGroup>
-  <ItemGroup>
-    <Resource Include="ToDo.txt" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

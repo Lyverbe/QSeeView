@@ -5,9 +5,16 @@ using System.Collections.Generic;
 
 namespace QSeeView.Tools
 {
+    public enum DeviceModelType
+    {
+        QCW4
+    };
+
     public interface IDeviceManager
     {
         event EventHandler<string> DownloadCompleted;
+
+        DeviceModelType DeviceModelType { get; }
 
         bool IsConnected { get; }
         IntPtr LoginId { get; }
