@@ -44,6 +44,7 @@ namespace QSeeView.ViewModels
             IsAutomaticLogin = App.Settings.IsAutomaticLogin;
             IsAutoQueryAtStartup = App.Settings.IsAutoQueryAtStartup;
             IsResettingPlaybackSpeed = App.Settings.IsResettingPlaybackSpeed;
+            IsAutoSelectAtQuery = App.Settings.IsAutoSelectAtQuery;
 
             ChannelsInfo = new List<ChannelInfoModel>(App.Settings.ChannelsInfo);
             IsConvertingToAvi = App.Settings.IsConvertingToAvi;
@@ -59,6 +60,7 @@ namespace QSeeView.ViewModels
             HddPercentSpaceWarning = App.Settings.HddPercentSpaceWarning;
             _queryYellowColorSeconds = App.Settings.QueryYellowColorSeconds;
             _queryRedColorSeconds = App.Settings.QueryRedColorSeconds;
+            DoShowHddSpaceWarning = App.Settings.DoShowHddSpaceWarning;
         }
 
         public ICommand OkCommand { get; }
@@ -191,6 +193,7 @@ namespace QSeeView.ViewModels
 
         public bool IsAutoOpenDownloads { get; set; }
         public bool DoPlayDownloadsCompleteSound { get; set; }
+        public bool IsAutoSelectAtQuery { get; set; }
 
         public int NightFilesStartHour { get; set; }
         public int NightFilesEndHour { get; set; }
@@ -206,6 +209,7 @@ namespace QSeeView.ViewModels
         }
 
         public int StartDatesOffset { get; set; }
+        public bool DoShowHddSpaceWarning { get; set; }
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

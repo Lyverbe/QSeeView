@@ -15,9 +15,11 @@ namespace QSeeView.ViewModels
         public event EventHandler NextVideo;
         public event EventHandler ReduceSpeed;
         public event EventHandler IncreaseSpeed;
+        public event EventHandler Replay;
         public event EventHandler<PlayBackType> SetPlaybackControl;
         public event EventHandler UpdateSlider;
         public event EventHandler SaveSnapshot;
+        public event EventHandler SelectedInQueryChanged;
 
         private double _playbackSliderMinimum;
         private double _playbackSliderMaximum;
@@ -26,15 +28,20 @@ namespace QSeeView.ViewModels
         private string _sliderTimeText;
         private double _sliderLargeChange;
         private bool _isPaused;
+        private bool _isSelectedInQuery;
+        private string _recordLength;
+        private int _playIndex;
 
-        public PlaybackViewModel()
+        public PlaybackViewModel(int playIndex, int recordCount)
         {
             PlaybackID = IntPtr.Zero;
-            Speed = 1.0;
+            PlayIndex = playIndex;
+            RecordCount = recordCount;
 
             _playbackUpdateTimer = new Timer(500);
             _playbackUpdateTimer.Elapsed += (s, e) => UpdateSlider?.Invoke(this, EventArgs.Empty);
 
+            ReplayCommand = new RelayCommand(() => Replay?.Invoke(this, EventArgs.Empty));
             StopCommand = new RelayCommand(() => Close?.Invoke(this, new EventArgs()));
             PlayCommand = new RelayCommand(() => IsPaused = false, () => IsPaused);
             PauseCommand = new RelayCommand(() => IsPaused = true, () => !IsPaused);
@@ -45,6 +52,7 @@ namespace QSeeView.ViewModels
             SaveSnapshotCommand = new RelayCommand(() => SaveSnapshot?.Invoke(this, new EventArgs()), () => IsPaused);
         }
 
+        public ICommand ReplayCommand { get; }
         public ICommand StopCommand { get; }
         public ICommand PlayCommand { get; }
         public ICommand PauseCommand { get; }
@@ -55,7 +63,6 @@ namespace QSeeView.ViewModels
         public ICommand SaveSnapshotCommand { get; }
 
         public IntPtr PlaybackID { get; set; }
-        private double Speed { get; set; }
 
         public bool IsPaused
         {
@@ -130,9 +137,43 @@ namespace QSeeView.ViewModels
             }
         }
 
+        public bool IsSelectedInQuery
+        {
+            get => _isSelectedInQuery;
+            set
+            {
+                _isSelectedInQuery = value;
+                OnPropertyChanged(nameof(IsSelectedInQuery));
+                SelectedInQueryChanged?.Invoke(this, new EventArgs());
+            }
+        }
+
+        public string RecordLength
+        {
+            get => _recordLength;
+            set
+            {
+                _recordLength = value;
+                OnPropertyChanged(nameof(RecordLength));
+            }
+        }
+
+        public int PlayIndex
+        {
+            get => _playIndex;
+            set
+            {
+                _playIndex = value;
+                OnPropertyChanged(nameof(PlayIndex));
+                OnPropertyChanged(nameof(PlayIndexPlusOne));
+            }
+        }
+        public int PlayIndexPlusOne => PlayIndex + 1;
+
         public bool IsLandscape { get; set; }
         public double ImageInitialWidth => IsLandscape ? App.HDSize.Width : App.HDSize.Height;
         public double ImageInitialHeight => IsLandscape ? App.HDSize.Height : App.HDSize.Width;
+        public int RecordCount { get; }
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

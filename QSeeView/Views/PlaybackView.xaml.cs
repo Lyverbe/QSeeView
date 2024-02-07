@@ -19,7 +19,6 @@ namespace QSeeView.Views
         private PlaybackViewModel _viewModel;
         private IList<RecordFileInfoModel> _records;
         private bool _reinitializePlayer;
-        private int _playIndex;
         private double _currentSpeed;
 
         public PlaybackView(IDeviceManager deviceManager, IList<RecordFileInfoModel> records, int playIndex)
@@ -28,11 +27,10 @@ namespace QSeeView.Views
 
             _deviceManager = deviceManager;
             _records = records;
-            _playIndex = playIndex;
 
             _currentSpeed = 1.0;
 
-            _viewModel = new PlaybackViewModel();
+            _viewModel = new PlaybackViewModel(playIndex, records.Count);
             DataContext = _viewModel;
 
             _viewModel.Close += (s, e) => Close();
@@ -41,9 +39,11 @@ namespace QSeeView.Views
             _viewModel.NextVideo += (s, e) => PlayNextVideo();
             _viewModel.ReduceSpeed += (s, e) => ReduceSpeed();
             _viewModel.IncreaseSpeed += (s, e) => IncreaseSpeed();
+            _viewModel.Replay += (s, e) => Replay();
             _viewModel.SetPlaybackControl += (s, command) => _deviceManager.PlaybackControl(_viewModel.PlaybackID, command);
             _viewModel.UpdateSlider += ViewModel_UpdateSlider;
             _viewModel.SaveSnapshot += ViewModel_SaveSnapshot;
+            _viewModel.SelectedInQueryChanged += (s, e) => _records[_viewModel.PlayIndex].IsSelected = _viewModel.IsSelectedInQuery;
 
             Loaded += PlaybackView_Loaded;
             ContentRendered += (s, e) => InitializePlayback();
@@ -52,7 +52,6 @@ namespace QSeeView.Views
         private void PlaybackView_Loaded(object sender, EventArgs e)
         {
             _pictureBox = FindPictureBox(this);
-            _pictureBox.BorderStyle = BorderStyle.FixedSingle;
             _pictureBox.Refresh();
 
             _pictureBox.Click += (s, ee) => _viewModel.IsPaused = !_viewModel.IsPaused;
@@ -84,22 +83,24 @@ namespace QSeeView.Views
 
         private void InitializePlayback()
         {
-            _viewModel.IsLandscape = App.Settings.ChannelsInfo[(int)_records[_playIndex].Channel].IsLandscape;
+            _viewModel.IsLandscape = App.Settings.ChannelsInfo[(int)_records[_viewModel.PlayIndex].Channel].IsLandscape;
             _viewModel.RefreshPlaybackImageSize();
 
             InitializeSlider();
-            StartPlayback(_records[_playIndex].Source.starttime);
+            StartPlayback(_records[_viewModel.PlayIndex].Source.starttime);
 
             if (App.Settings.IsResettingPlaybackSpeed)
                 _currentSpeed = 1.0;
             else
                 ResumeSpeed();
             UpdateTitle();
+            _viewModel.IsSelectedInQuery = _records[_viewModel.PlayIndex].IsSelected;
+            _viewModel.RecordLength = _records[_viewModel.PlayIndex].Length.ToString("T");
         }
 
         private void StartPlayback(NET_TIME startTime)
         {
-            _viewModel.PlaybackID = _deviceManager.StartPlayback(startTime, _records[_playIndex].Source.endtime, (uint)_records[_playIndex].Channel, _pictureBox.Handle);
+            _viewModel.PlaybackID = _deviceManager.StartPlayback(startTime, _records[_viewModel.PlayIndex].Source.endtime, (uint)_records[_viewModel.PlayIndex].Channel, _pictureBox.Handle);
             _viewModel.Start();
         }
 
@@ -128,7 +129,7 @@ namespace QSeeView.Views
 
         private void UpdateTitle()
         {
-            var newTitle = "Playback - " + _records[_playIndex].FileName;
+            var newTitle = "Playback - " + _records[_viewModel.PlayIndex].FileName;
             if (_currentSpeed != 1.0)
             {
                 newTitle += $" - {_currentSpeed}x";
@@ -141,38 +142,37 @@ namespace QSeeView.Views
         {
             switch (e.Key)
             {
+                case Key.Escape:
+                    Close();
+                    break;
                 case Key.Left:
-                    {
-                        PlayPreviousVideo();
-                        e.Handled = true;
-                        break;
-                    }
+                    PlayPreviousVideo();
+                    e.Handled = true;
+                    break;
                 case Key.Right:
-                    {
-                        PlayNextVideo();
-                        e.Handled = true;
-                        break;
-                    }
+                    PlayNextVideo();
+                    e.Handled = true;
+                    break;
                 case Key.Up:
-                    {
-                        IncreaseSpeed();
-                        e.Handled = true;
-                        break;
-                    }
+                    IncreaseSpeed();
+                    e.Handled = true;
+                    break;
                 case Key.Down:
-                    {
-                        ReduceSpeed();
-                        e.Handled = true;
-                        break;
-                    }
+                    ReduceSpeed();
+                    e.Handled = true;
+                    break;
                 case Key.Space:
-                    {
-                        if (_viewModel.IsPaused)
-                            _viewModel.PlayCommand.Execute(null);
-                        else
-                            _viewModel.PauseCommand.Execute(null);
-                        break;
-                    }
+                    if (_viewModel.IsPaused)
+                        _viewModel.PlayCommand.Execute(null);
+                    else
+                        _viewModel.PauseCommand.Execute(null);
+                    break;
+                case Key.S:
+                    _viewModel.IsSelectedInQuery = !_viewModel.IsSelectedInQuery;
+                    break;
+                case Key.R:
+                    Replay();
+                    break;
             }
 
             base.OnPreviewKeyDown(e);
@@ -200,28 +200,28 @@ namespace QSeeView.Views
 
         private void PlayPreviousVideo()
         {
-            if (_playIndex > 0)
+            if (_viewModel.PlayIndex > 0)
             {
                 _viewModel.Stop();
-                _playIndex--;
+                _viewModel.PlayIndex--;
                 InitializePlayback();
             }
         }
 
         private void PlayNextVideo()
         {
-            if (_playIndex + 1 < _records.Count)
+            if (_viewModel.PlayIndex + 1 < _records.Count)
             {
                 _viewModel.Stop();
-                _playIndex++;
+                _viewModel.PlayIndex++;
                 InitializePlayback();
             }
         }
 
         private void InitializeSlider()
         {
-            _viewModel.PlaybackSliderMinimum = _records[_playIndex].StartTime.Ticks;
-            _viewModel.PlaybackSliderMaximum = _records[_playIndex].EndTime.Ticks;
+            _viewModel.PlaybackSliderMinimum = _records[_viewModel.PlayIndex].StartTime.Ticks;
+            _viewModel.PlaybackSliderMaximum = _records[_viewModel.PlayIndex].EndTime.Ticks;
             _viewModel.SliderLargeChange = (_viewModel.PlaybackSliderMaximum - _viewModel.PlaybackSliderMinimum) / 10;
         }
 
@@ -252,10 +252,16 @@ namespace QSeeView.Views
             }
         }
 
+        private void Replay()
+        {
+            _viewModel.Stop();
+            InitializePlayback();
+        }
+
         private void ViewModel_SaveSnapshot(object sender, EventArgs e)
         {
             var snapshotTimestamp = new DateTime((long)_viewModel.PlaybackSliderValue);
-            var view = new SaveSnapshotSettingsView(snapshotTimestamp, _records[_playIndex].Channel)
+            var view = new SaveSnapshotSettingsView(snapshotTimestamp, _records[_viewModel.PlayIndex].Channel)
             {
                 Owner = this
             };

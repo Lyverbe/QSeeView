@@ -41,6 +41,6 @@ namespace QSeeView.Tools
         bool SaveRealData(IntPtr handle, string fileName);
         bool StopSaveRealData(IntPtr handle);
 
-        IEnumerable<HardDiskInfoModel> GetHardDiskInfo();
+        IEnumerable<HardDiskInfoModel> GetHardDisksInfo();
     }
 }

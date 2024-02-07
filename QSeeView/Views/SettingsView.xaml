@@ -27,9 +27,18 @@
                     <CheckBox Content="Automatic login" IsChecked="{Binding IsAutomaticLogin}" />
                     <CheckBox Content="Convert files to AVI after download" IsChecked="{Binding IsConvertingToAvi}" />
                     <CheckBox Content="Automatic query at startup" IsChecked="{Binding IsAutoQueryAtStartup}" />
+                    <CheckBox Content="Automatically select all query records" IsChecked="{Binding IsAutoSelectAtQuery}" />
                     <CheckBox Content="Reset playback speed when changing file" IsChecked="{Binding IsResettingPlaybackSpeed}" />
                     <CheckBox Content="Open download folder when downloads are done" IsChecked="{Binding IsAutoOpenDownloads}" />
                     <CheckBox Content="Play sound when downloads are done" IsChecked="{Binding DoPlayDownloadsCompleteSound}" />
+                    <CheckBox IsChecked="{Binding DoShowHddSpaceWarning}" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Display warning if a HDD space is less or equal " />
+                            <TextBox Text="{Binding HddPercentSpaceWarning}" Width="25" PreviewTextInput="IntTextBox_PreviewTextInput" />
+                            <TextBlock Text="%" Margin="2,0,0,0" />
+                        </StackPanel>
+                    </CheckBox>
+
                     <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                         <TextBlock Text="Live view is " />
                         <TextBox Text="{Binding LiveViewSize, UpdateSourceTrigger=PropertyChanged}" Width="20" PreviewTextInput="IntTextBox_PreviewTextInput" />
@@ -38,16 +47,6 @@
                             <Run Text="{Binding LiveViewSize}" />
                             <Run Text="columns" />
                         </TextBlock>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Display warning if a HDD space is less or equal " />
-                        <TextBox Text="{Binding HddPercentSpaceWarning}" Width="25" PreviewTextInput="IntTextBox_PreviewTextInput" />
-                        <TextBlock Text="%" />
-
-                        <Grid Margin="5,0,0,0">
-                            <TextBlock x:Name="InfoTextBlock" Text="  i  " Foreground="LightGray" ToolTip="Enter 0 to disable warning" />
-                            <Ellipse Stroke="{Binding Foreground, ElementName=InfoTextBlock}" Width="14" Height="14" />
-                        </Grid>
                     </StackPanel>
                 </StackPanel>
             </TabItem>

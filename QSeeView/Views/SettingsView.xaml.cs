@@ -51,6 +51,8 @@ namespace QSeeView.Views
                 App.Settings.HddPercentSpaceWarning = _viewModel.HddPercentSpaceWarning;
                 App.Settings.QueryYellowColorSeconds = _viewModel.QueryYellowColorSeconds;
                 App.Settings.QueryRedColorSeconds = _viewModel.QueryRedColorSeconds;
+                App.Settings.IsAutoSelectAtQuery = _viewModel.IsAutoSelectAtQuery;
+                App.Settings.DoShowHddSpaceWarning = _viewModel.DoShowHddSpaceWarning;
             }
 
             DialogResult = isOkClicked;

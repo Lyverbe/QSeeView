@@ -45,7 +45,17 @@ namespace QSeeView
                 }
 
                 if (_deviceManager.IsConnected)
-                    new MainWindow(_deviceManager).ShowDialog();
+                {
+                    var window = new MainWindow(_deviceManager);
+                    if (Settings.WindowRect.Size.Width != 0 && Settings.WindowRect.Size.Height != 0)
+                    {
+                        window.Left = Settings.WindowRect.Left;
+                        window.Top = Settings.WindowRect.Top;
+                        window.Width = Settings.WindowRect.Width;
+                        window.Height = Settings.WindowRect.Height;
+                    }
+                    window.ShowDialog();
+                }
                 else
                     MessageBox.Show("Login failed.  Ensure you have the right username and password", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Windows;
 
 namespace QSeeView.Tools
 {
@@ -22,6 +23,7 @@ namespace QSeeView.Tools
             FileNamesPattern = "%Y-%M-%D_%Hh%Nm%S_ch%c";
             LiveViewSize = 2;
             DevicePort = 37777;
+            DoShowHddSpaceWarning = true;
             HddPercentSpaceWarning = 5;
             QueryYellowColorSeconds = 45;
             QueryRedColorSeconds = 60;
@@ -75,6 +77,12 @@ namespace QSeeView.Tools
         public int QueryYellowColorSeconds { get; set; }
         [DataMember]
         public int QueryRedColorSeconds { get; set; }
+        [DataMember]
+        public bool IsAutoSelectAtQuery { get; set; }
+        [DataMember]
+        public Rect WindowRect { get; set; }
+        [DataMember]
+        public bool DoShowHddSpaceWarning { get; set; }
 
         public string Password { get; set; }
 
@@ -116,7 +124,10 @@ namespace QSeeView.Tools
             if (LiveViewSize == 0)
                 LiveViewSize = 2;
             if (!HddPercentSpaceWarning.HasValue)
+            {
+                DoShowHddSpaceWarning = true;
                 HddPercentSpaceWarning = 5;
+            }
         }
 
         private void DecodePassword()

@@ -209,7 +209,7 @@ namespace QSeeView.Tools
         /// <summary>
         /// Retrieves information about the hard disk
         /// </summary>
-        public IEnumerable<HardDiskInfoModel> GetHardDiskInfo()
+        public IEnumerable<HardDiskInfoModel> GetHardDisksInfo()
         {
             object state = new NET_HARDDISK_STATE();
             NETClient.QueryDevState(LoginId, (int)EM_DEVICE_STATE.DISK, ref state, typeof(NET_HARDDISK_STATE), 1000);

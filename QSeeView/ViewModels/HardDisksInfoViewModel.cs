@@ -5,11 +5,11 @@ using System.Windows.Input;
 
 namespace QSeeView.ViewModels
 {
-    public class HardDiskInfoViewModel
+    public class HardDisksInfoViewModel
     {
         public event EventHandler Close;
 
-        public HardDiskInfoViewModel()
+        public HardDisksInfoViewModel()
         {
             CloseCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
         }

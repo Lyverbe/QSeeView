@@ -112,6 +112,7 @@
     </ApplicationDefinition>
     <Compile Include="Converters\ChannelIdConverter.cs" />
     <Compile Include="Models\CaptureFormatModel.cs" />
+    <Compile Include="Models\DateChangingArgs.cs" />
     <Compile Include="Models\HardDiskInfoModel.cs" />
     <Compile Include="Models\LiveMonitorModel.cs" />
     <Compile Include="Models\ChannelInfoModel.cs" />
@@ -123,12 +124,13 @@
     <Compile Include="Tools\QCW4DeviceManager.cs" />
     <Compile Include="Tools\Settings.cs" />
     <Compile Include="Tools\VideoConverter.cs" />
+    <Compile Include="Types\DateType.cs" />
     <Compile Include="Types\ResponseType.cs" />
     <Compile Include="Types\StateType.cs" />
     <Compile Include="Types\StreamRecordType.cs" />
     <Compile Include="Types\ThemeType.cs" />
     <Compile Include="ViewModels\FilterChannelsViewModel.cs" />
-    <Compile Include="ViewModels\HardDiskInfoViewModel.cs" />
+    <Compile Include="ViewModels\HardDisksInfoViewModel.cs" />
     <Compile Include="ViewModels\LiveViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\SaveSnapshotSettingsViewModel.cs" />

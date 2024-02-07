@@ -46,7 +46,8 @@ namespace QSeeView
             _viewModel.FilterChannels += ViewModel_FilterChannels;
             _viewModel.Close += (s, e) => Close();
             _viewModel.ExportQuery += ViewModel_ExportQuery;
-            _viewModel.HardDiskInfo += ViewModel_HardDiskInfo;
+            _viewModel.HardDisksInfo += ViewModel_HardDisksInfo;
+            _viewModel.ApplyDateOffset += ViewModel_ApplyDateOffset;
 
             _deviceManager.DownloadCompleted += DeviceManager_DownloadCompleted;
 
@@ -81,6 +82,7 @@ namespace QSeeView
 
         protected override void OnClosed(EventArgs e)
         {
+            App.Settings.WindowRect = new Rect(Left, Top, Width, Height);
             _deviceManager.Shutdown();
             base.OnClosed(e);
         }
@@ -95,7 +97,7 @@ namespace QSeeView
         protected override void OnPreviewMouseDoubleClick(MouseButtonEventArgs e)
         {
             var listView = e.Source as ListView;
-            if (listView != null)
+            if (listView != null && !IsGridViewColumnHeader(e.OriginalSource as DependencyObject))
             {
                 var record = listView.SelectedValue as RecordFileInfoModel;
                 if (record != null)
@@ -123,9 +125,11 @@ namespace QSeeView
 
         private void Query()
         {
-            var canQuery = CanQuery();
-            if (!canQuery)
+            if (_viewModel.EndDateTime <= _viewModel.StartDateTime)
+            {
+                MessageBox.Show("End date must be greater than start date", "Query");
                 return;
+            }
 
             Mouse.OverrideCursor = Cursors.Wait;
             _queryManager.Run(_viewModel.StartDateTime, _viewModel.EndDateTime);
@@ -135,18 +139,7 @@ namespace QSeeView
             if (_viewModel.Records.Count >= _deviceManager.MaxQueryRecords)
                 MessageBox.Show($"Limit of {_deviceManager.MaxQueryRecords} records has been reached. Some files may be missing.", "Query");
 
-            _viewModel.CheckAll = true;
-        }
-
-        private bool CanQuery()
-        {
-            if (_viewModel.EndDateTime <= _viewModel.StartDateTime)
-            {
-                MessageBox.Show("End date must be greater than start date", "Title");
-                return false;
-            }
-
-            return true;
+            _viewModel.CheckAll = App.Settings.IsAutoSelectAtQuery;
         }
 
         private void ViewModel_ShowSettings(object sender, EventArgs e)
@@ -335,9 +328,9 @@ namespace QSeeView
             }
         }
 
-        private void ViewModel_HardDiskInfo(object sender, EventArgs e)
+        private void ViewModel_HardDisksInfo(object sender, EventArgs e)
         {
-            new HardDiskInfoView(_deviceManager)
+            new HardDisksInfoView(_deviceManager)
             {
                 Owner = this
             }.ShowDialog();
@@ -346,14 +339,26 @@ namespace QSeeView
         private void ClearStatusBar()
         {
             var text = "Ready";
-            if (App.Settings.HddPercentSpaceWarning > 0)
+            if (App.Settings.DoShowHddSpaceWarning)
             {
-                var hddsInfo = _deviceManager.GetHardDiskInfo();
+                var hddsInfo = _deviceManager.GetHardDisksInfo();
                 if (hddsInfo.Any(hddInfo => (hddInfo.FreeSpace / (double)hddInfo.Capacity) * 100 < App.Settings.HddPercentSpaceWarning))
                     text = $"WARNING: At least one of the hard disk drive is below {App.Settings.HddPercentSpaceWarning}%";
             }
 
             _viewModel.StatusBarInfo = text;
+        }
+
+        private bool IsGridViewColumnHeader(DependencyObject dependencyObject)
+        {
+            while (dependencyObject != null && !(dependencyObject is GridViewColumnHeader))
+                dependencyObject = System.Windows.Media.VisualTreeHelper.GetParent(dependencyObject);
+            return (dependencyObject is GridViewColumnHeader);
+        }
+
+        private void ViewModel_ApplyDateOffset(object sender, EventArgs e)
+        {
+            _viewModel.EndDateTime = _viewModel.StartDateTime.AddDays(1);
         }
     }
 }

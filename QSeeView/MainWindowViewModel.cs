@@ -22,7 +22,8 @@ namespace QSeeView
         public event EventHandler<Button> FilterChannels;
         public event EventHandler Close;
         public event EventHandler ExportQuery;
-        public event EventHandler HardDiskInfo;
+        public event EventHandler HardDisksInfo;
+        public event EventHandler ApplyDateOffset;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -52,7 +53,9 @@ namespace QSeeView
             FilterChannelsCommand = new RelayCommand<Button>((button) => FilterChannels?.Invoke(this, button));
             ExitCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
             ExportQueryCommand = new RelayCommand(() => ExportQuery?.Invoke(this, EventArgs.Empty), () => Records != null && Records.Any());
-            HardDiskInfoCommand = new RelayCommand(() => HardDiskInfo?.Invoke(this, EventArgs.Empty));
+            HardDisksInfoCommand = new RelayCommand(() => HardDisksInfo?.Invoke(this, EventArgs.Empty));
+            CloseCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
+            ApplyDateOffsetCommand = new RelayCommand(() => ApplyDateOffset?.Invoke(this, EventArgs.Empty));
 
             State = StateType.Idle;
 
@@ -73,7 +76,9 @@ namespace QSeeView
         public ICommand FilterChannelsCommand { get; }
         public ICommand ExitCommand { get;}
         public ICommand ExportQueryCommand { get; }
-        public ICommand HardDiskInfoCommand { get; }
+        public ICommand HardDisksInfoCommand { get; }
+        public ICommand CloseCommand { get; }
+        public ICommand ApplyDateOffsetCommand { get; }
 
         public ObservableCollection<string> DownloadErrors { get; private set; }
         public int TotalDownloadCount { get; set; }
@@ -188,7 +193,7 @@ namespace QSeeView
                 }
             }
         }
-        private int DatesOffset { get; set; }
+        public int DatesOffset { get; private set; }
         public bool IsDarkTheme => App.Settings.ThemeId == ThemeType.Dark;
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

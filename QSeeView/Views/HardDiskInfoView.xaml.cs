@@ -1,31 +1,26 @@
 ﻿using QSeeView.Models;
 using QSeeView.Tools;
 using QSeeView.ViewModels;
-using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows;
 
 namespace QSeeView.Views
 {
-    public partial class HardDiskInfoView : Window
+    public partial class HardDisksInfoView : Window
     {
-        private HardDiskInfoViewModel _viewModel;
+        private HardDisksInfoViewModel _viewModel;
 
-        public HardDiskInfoView(IDeviceManager deviceManager)
+        public HardDisksInfoView(IDeviceManager deviceManager)
         {
             InitializeComponent();
 
-            _viewModel = new HardDiskInfoViewModel();
+            _viewModel = new HardDisksInfoViewModel();
             DataContext = _viewModel;
 
             _viewModel.Close += (s, e) => DialogResult = true;
 
-            FillHardDiskInfo(deviceManager);
-        }
-
-        private void FillHardDiskInfo(IDeviceManager deviceManager)
-        {
-            _viewModel.HardDiskInfo = new ObservableCollection<HardDiskInfoModel>(deviceManager.GetHardDiskInfo());
+            _viewModel.HardDiskInfo = new ObservableCollection<HardDiskInfoModel>(deviceManager.GetHardDisksInfo().Where(info => info.Capacity > 0));
         }
     }
 }
