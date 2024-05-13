@@ -101,6 +101,14 @@ namespace QSeeView.Views
             return null;
         }
 
+        protected override void OnKeyDown(System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.C && System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl))
+                _viewModel.AreControlsVisible = !_viewModel.AreControlsVisible;
+
+            base.OnKeyDown(e);
+        }
+
         private void LiveMonitor_ChannelChanging(object sender, ChannelInfoModel newChannelInfo)
         {
             if (newChannelInfo.IsOnline)

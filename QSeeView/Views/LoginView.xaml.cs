@@ -1,5 +1,9 @@
-﻿using QSeeView.ViewModels;
+﻿using QSeeView.Tools;
+using QSeeView.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 
@@ -19,19 +23,15 @@ namespace QSeeView.Views
             _viewModel.Close += ViewModel_Close;
         }
 
-        public bool IsLogginSuccessful { get; private set; }
-        public IntPtr LoginId { get; private set; }
-
         private void ViewModel_Close(object sender, bool isOkClicked)
         {
-            IsLogginSuccessful = false;
-
             if (isOkClicked)
             {
                 App.Settings.DeviceIp = _viewModel.DeviceIp;
                 App.Settings.DevicePort = _viewModel.DevicePort;
                 App.Settings.Username = _viewModel.Username;
                 App.Settings.Password = _viewModel.Password;
+                App.Settings.DeviceModel = _viewModel.DeviceModel;
             }
 
             DialogResult = isOkClicked;

@@ -12,18 +12,16 @@ namespace QSeeView.ViewModels
 
         private int _viewRowsCount;
         private int _viewColumnsCount;
+        private bool _areControlsVisible;
 
         public LiveViewModel(IDeviceManager deviceManager)
         {
             LiveMonitors = new List<LiveMonitorModel>();
-            //foreach (var channelInfo in App.Settings.ChannelsInfo)
-            //    LiveMonitors.Add(new LiveMonitorModel(deviceManager, channelInfo.ChannelId));
             for (var channelId = 0; channelId < Math.Pow(App.Settings.LiveViewSize, 2); channelId++)
-            {
                 LiveMonitors.Add(new LiveMonitorModel(deviceManager, channelId));
-            }
-
             MaximizeRowsColumnsCount();
+
+            _areControlsVisible = true;
         }
 
         public int ViewRowsCount
@@ -43,6 +41,16 @@ namespace QSeeView.ViewModels
             {
                 _viewColumnsCount = value;
                 OnPropertyChanged(nameof(ViewColumnsCount));
+            }
+        }
+
+        public bool AreControlsVisible
+        {
+            get => _areControlsVisible;
+            set
+            {
+                _areControlsVisible = value;
+                OnPropertyChanged(nameof(AreControlsVisible));
             }
         }
 

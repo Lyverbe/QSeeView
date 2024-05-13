@@ -53,6 +53,7 @@ namespace QSeeView.Views
                 App.Settings.QueryRedColorSeconds = _viewModel.QueryRedColorSeconds;
                 App.Settings.IsAutoSelectAtQuery = _viewModel.IsAutoSelectAtQuery;
                 App.Settings.DoShowHddSpaceWarning = _viewModel.DoShowHddSpaceWarning;
+                App.Settings.AutoQuerySeconds = _viewModel.IsAutoQueryEnabled ? _viewModel.AutoQuerySeconds : (int?)null;
             }
 
             DialogResult = isOkClicked;

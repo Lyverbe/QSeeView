@@ -19,7 +19,7 @@
             <DataTemplate>
                 <Border BorderBrush="DarkGreen" BorderThickness="1">
                     <DockPanel>
-                        <DockPanel DockPanel.Dock="Bottom" Margin="100,0">
+                        <DockPanel DockPanel.Dock="Bottom" Margin="100,0" Visibility="{Binding DataContext.AreControlsVisible, RelativeSource={RelativeSource AncestorType={x:Type Window}}, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Button DockPanel.Dock="Right" Command="{Binding ToggleRecordCommand}" Margin="5,0,0,0" Padding="2" ToolTip="Record">
                                 <Ellipse Width="10" Height="10" Stroke="DarkRed" Fill="{Binding RecordButtonBrush}" />
                             </Button>

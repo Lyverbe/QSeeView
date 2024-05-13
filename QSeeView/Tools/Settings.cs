@@ -2,6 +2,7 @@
 using QSeeView.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Windows;
@@ -11,10 +12,10 @@ namespace QSeeView.Tools
     [DataContract]
     public partial class Settings
     {
-        public Settings(int channelsCount)
+        public Settings()
         {
             ChannelsInfo = new List<ChannelInfoModel>();
-            InitializeChannelsInfo(channelsCount);
+            InitializeChannelsInfo(4);
 
             DownloadFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             IsConvertingToAvi = true;
@@ -22,12 +23,14 @@ namespace QSeeView.Tools
             NightFilesEndHour = 6;
             FileNamesPattern = "%Y-%M-%D_%Hh%Nm%S_ch%c";
             LiveViewSize = 2;
-            DevicePort = 37777;
+            DevicePort = DefaultPort;
             DoShowHddSpaceWarning = true;
             HddPercentSpaceWarning = 5;
             QueryYellowColorSeconds = 45;
             QueryRedColorSeconds = 60;
         }
+
+        public ushort DefaultPort => 37777;
 
         [DataMember]
         public IList<ChannelInfoModel> ChannelsInfo { get; set; }
@@ -83,6 +86,10 @@ namespace QSeeView.Tools
         public Rect WindowRect { get; set; }
         [DataMember]
         public bool DoShowHddSpaceWarning { get; set; }
+        [DataMember]
+        public DeviceModelType DeviceModel { get; set; }
+        [DataMember]
+        public int? AutoQuerySeconds { get; set; }
 
         public string Password { get; set; }
 

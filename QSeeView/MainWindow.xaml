@@ -137,7 +137,7 @@
                 <ListBox ItemsSource="{Binding DownloadErrors}" Height="50" Background="Red" Foreground="White" />
             </StackPanel>
 
-            <ListView x:Name="RecordsList" ItemsSource="{Binding Records}" Margin="0,5,0,0"
+            <ListView x:Name="RecordsList" ItemsSource="{Binding Records}" Margin="0,5,0,0" SelectedItem="{Binding SelectedRecord}"
                       GridViewColumnHeader.Click="RecordsListHeader_Click"
                       Background="{Binding Background, ElementName=AppWindow}" Foreground="{Binding Foreground, ElementName=AppWindow}">
                 <ListView.Resources>

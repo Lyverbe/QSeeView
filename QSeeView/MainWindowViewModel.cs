@@ -193,6 +193,7 @@ namespace QSeeView
                 }
             }
         }
+        public RecordFileInfoModel SelectedRecord { get; set; }
         public int DatesOffset { get; private set; }
         public bool IsDarkTheme => App.Settings.ThemeId == ThemeType.Dark;
 

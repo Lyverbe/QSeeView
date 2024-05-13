@@ -110,6 +110,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\DeviceModelConverter.cs" />
     <Compile Include="Converters\ChannelIdConverter.cs" />
     <Compile Include="Models\CaptureFormatModel.cs" />
     <Compile Include="Models\DateChangingArgs.cs" />

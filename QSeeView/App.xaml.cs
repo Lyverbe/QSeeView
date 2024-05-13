@@ -18,8 +18,6 @@ namespace QSeeView
 
         public App()
         {
-            _deviceManager = new QCW4DeviceManager();
-
             SettingsFileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QSeeViewSettings.xml");
         }
 
@@ -29,40 +27,67 @@ namespace QSeeView
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
             LoadSettings(SettingsFileName);
-            InitializeTheme();
 
+            var retryLogin = true;
+            bool? isOkClickedOnLogin = false;
             if (Settings != null)
             {
-                if (Settings.IsAutomaticLogin)
-                    _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
+                InitializeTheme();
 
-                if (!_deviceManager.IsConnected)
+                do
                 {
-                    var view = new LoginView();
-                    var isOkClicked = view.ShowDialog();
-                    if (isOkClicked == true)
-                        _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
-                }
-
-                if (_deviceManager.IsConnected)
-                {
-                    var window = new MainWindow(_deviceManager);
-                    if (Settings.WindowRect.Size.Width != 0 && Settings.WindowRect.Size.Height != 0)
+                    if (Settings.IsAutomaticLogin)
                     {
-                        window.Left = Settings.WindowRect.Left;
-                        window.Top = Settings.WindowRect.Top;
-                        window.Width = Settings.WindowRect.Width;
-                        window.Height = Settings.WindowRect.Height;
+                        _deviceManager = GetDeviceManager();
+                        _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
                     }
-                    window.ShowDialog();
-                }
-                else
-                    MessageBox.Show("Login failed.  Ensure you have the right username and password", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    else
+                    {
+                        var view = new LoginView();
+                        isOkClickedOnLogin = view.ShowDialog();
+                        if (isOkClickedOnLogin == true)
+                        {
+                            _deviceManager = GetDeviceManager();
+                            _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
+                        }
+                        else
+                            retryLogin = false;
+                    }
 
-                CreateSettingsBackup();
-                SaveSettings();
+                    if (_deviceManager != null && _deviceManager.IsConnected)
+                    {
+                        var window = new MainWindow(_deviceManager);
+                        if (Settings.WindowRect.Size.Width != 0 && Settings.WindowRect.Size.Height != 0)
+                        {
+                            window.Left = Settings.WindowRect.Left;
+                            window.Top = Settings.WindowRect.Top;
+                            window.Width = Settings.WindowRect.Width;
+                            window.Height = Settings.WindowRect.Height;
+                        }
+                        window.ShowDialog();
+
+                        CreateSettingsBackup();
+                        SaveSettings();
+                    }
+                    else if (isOkClickedOnLogin == true)
+                    {
+                        MessageBox.Show("Login failed.  Ensure you have the right username and password.", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                        retryLogin = true;
+                    }
+                } while (retryLogin && !_deviceManager.IsConnected);
             }
             Shutdown();
+        }
+
+        private IDeviceManager GetDeviceManager()
+        {
+            switch (Settings.DeviceModel)
+            {
+                case DeviceModelType.QCW4:
+                    return new QCW4DeviceManager();
+                default:
+                    throw new Exception("Unhandled device model");
+            }
         }
 
         private void InitializeTheme()
@@ -89,6 +114,8 @@ namespace QSeeView
                 }
                 catch { }
             }
+            //else
+            //    Settings = new Settings();
 
             if (Settings == null)
                 HandleLoadSettingsFailure();
@@ -111,7 +138,7 @@ namespace QSeeView
             if (Settings == null)
             {
                 MessageBox.Show("Failed to load settings.  Application will launch with initial settings.", "Load settings");
-                Settings = new Settings(_deviceManager.ChannelsCount);
+                Settings = new Settings();
             }
         }
 

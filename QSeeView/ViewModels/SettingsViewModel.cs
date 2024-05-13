@@ -30,6 +30,8 @@ namespace QSeeView.ViewModels
         private int? _hddPercentSpaceWarning;
         private int _queryYellowColorSeconds;
         private int _queryRedColorSeconds;
+        private bool _isAutoQueryEnabled;
+        private int _autoQuerySeconds;
 
         public SettingsViewModel()
         {
@@ -61,6 +63,8 @@ namespace QSeeView.ViewModels
             _queryYellowColorSeconds = App.Settings.QueryYellowColorSeconds;
             _queryRedColorSeconds = App.Settings.QueryRedColorSeconds;
             DoShowHddSpaceWarning = App.Settings.DoShowHddSpaceWarning;
+            IsAutoQueryEnabled = App.Settings.AutoQuerySeconds.HasValue;
+            AutoQuerySeconds = IsAutoQueryEnabled ? App.Settings.AutoQuerySeconds.Value : 1;
         }
 
         public ICommand OkCommand { get; }
@@ -206,6 +210,25 @@ namespace QSeeView.ViewModels
         {
             get => _queryRedColorSeconds;
             set => _queryRedColorSeconds = (value < QueryYellowColorSeconds) ? QueryYellowColorSeconds : value;
+        }
+
+        public bool IsAutoQueryEnabled
+        {
+            get => _isAutoQueryEnabled;
+            set
+            {
+                _isAutoQueryEnabled = value;
+                OnPropertyChanged(nameof(IsAutoQueryEnabled));
+            }
+        }
+        public int AutoQuerySeconds
+        {
+            get => _autoQuerySeconds;
+            set
+            {
+                _autoQuerySeconds = Math.Max(value, 1);
+                OnPropertyChanged(nameof(AutoQuerySeconds));
+            }
         }
 
         public int StartDatesOffset { get; set; }

@@ -2,11 +2,14 @@
 using QSeeView.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace QSeeView.Tools
 {
+    // Be careful since enum is stored in settings.  Always add at the end to not break backward compatibility.
     public enum DeviceModelType
     {
+        [Description("QCW4")]  // Text in the login's ComboBox
         QCW4
     };
 

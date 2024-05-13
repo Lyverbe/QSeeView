@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Media;
 using System.Reflection;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -25,6 +26,7 @@ namespace QSeeView
         private Point _filterChannelsViewOffset;
         private QueryManager _queryManager;
         private GridViewColumnHeader _lastColumnClicked;
+        private Timer _autoQueryTimer;
 
         public MainWindow(IDeviceManager deviceManager)
         {
@@ -55,6 +57,9 @@ namespace QSeeView
             _downloader.DownloadError += Downloader_DownloadError;
             _downloader.DownloadsCompleted += Downloader_DownloadsCompleted;
 
+            _autoQueryTimer = new Timer();
+            _autoQueryTimer.Elapsed += (s, e) => Application.Current.Dispatcher.BeginInvoke(new Action(() => Query()));
+
             ContentRendered += MainWindow_ContentRendered;
 
             var assemblyName = Assembly.GetExecutingAssembly().GetName();
@@ -64,6 +69,7 @@ namespace QSeeView
 
             SubscribeListVisibilityChanged();
             ClearStatusBar();
+            UpdateAutoQueryParameters();
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
@@ -107,6 +113,13 @@ namespace QSeeView
             base.OnPreviewMouseDoubleClick(e);
         }
 
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            if (_viewModel.SelectedRecord != null && (e.Key == Key.Enter || e.Key == Key.Space))
+                PlaybackRecord(_viewModel.SelectedRecord);
+            base.OnPreviewKeyDown(e);
+        }
+
         private void PlaybackRecord(RecordFileInfoModel record)
         {
             var playIndex = _viewModel.Records.IndexOf(record);
@@ -121,6 +134,17 @@ namespace QSeeView
         {
             foreach (var channelInfo in App.Settings.ChannelsInfo)
                 channelInfo.ListVisibilityChanged += (s, e) => Query();
+        }
+
+        private void UpdateAutoQueryParameters()
+        {
+            if (App.Settings.AutoQuerySeconds.HasValue)
+            {
+                _autoQueryTimer.Interval = App.Settings.AutoQuerySeconds.Value * 1000;
+                _autoQueryTimer.Start();
+            }
+            else
+                _autoQueryTimer.Stop();
         }
 
         private void Query()
@@ -155,6 +179,7 @@ namespace QSeeView
                 ClearStatusBar();   // Update for HDD space warning
                 if (view.RefreshQuery)
                     Query();
+                UpdateAutoQueryParameters();
             }
         }
 
