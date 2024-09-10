@@ -30,13 +30,14 @@ namespace QSeeView
 
             var retryLogin = true;
             bool? isOkClickedOnLogin = false;
+            var skipAutomaticLogin = false;
             if (Settings != null)
             {
                 InitializeTheme();
 
                 do
                 {
-                    if (Settings.IsAutomaticLogin)
+                    if (Settings.IsAutomaticLogin && !skipAutomaticLogin)
                     {
                         _deviceManager = GetDeviceManager();
                         _deviceManager.Login(Settings.DeviceIp, Settings.DevicePort, Settings.Username, Settings.Password);
@@ -74,6 +75,8 @@ namespace QSeeView
                         MessageBox.Show("Login failed.  Ensure you have the right username and password.", "Login failed", MessageBoxButton.OK, MessageBoxImage.Error);
                         retryLogin = true;
                     }
+                    else if (!_deviceManager.IsConnected)
+                        skipAutomaticLogin = true;
                 } while (retryLogin && !_deviceManager.IsConnected);
             }
             Shutdown();

@@ -26,6 +26,7 @@
                 <MenuItem Header="Export query to CSV..." Command="{Binding ExportQueryCommand}" />
                 <MenuItem Header="Open download folder..." Command="{Binding OpenDownloadFolderCommand}" InputGestureText="Ctrl+O" />
                 <Separator />
+                <MenuItem Header="Logout and Exit" Command="{Binding LogoutCommand}" />
                 <MenuItem Header="Exit" Command="{Binding ExitCommand}" InputGestureText="Alt+F4" />
             </MenuItem>
             <MenuItem Header="Tools">
@@ -189,6 +190,7 @@
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn x:Name="MediaColumn">
+                            <GridViewColumnHeader IsHitTestVisible="False" />
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Padding="0" Width="20" Height="16" Command="{Binding DataContext.PlayCommand, ElementName=AppWindow}"

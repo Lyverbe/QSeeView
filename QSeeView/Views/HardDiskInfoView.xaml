@@ -26,7 +26,7 @@
                         <GridViewColumn Header="ID" Width="40" DisplayMemberBinding="{Binding Id}" />
                         <GridViewColumn Header="Capacity (mb)" Width="90" DisplayMemberBinding="{Binding Capacity, StringFormat='0,0'}" />
                         <GridViewColumn Header="Free (mb)" Width="90" DisplayMemberBinding="{Binding FreeSpace, StringFormat='0,0'}" />
-                        <GridViewColumn x:Name="PercentColumn" Header="Percent" Width="200">
+                        <GridViewColumn x:Name="PercentColumn" Header="Percent Free" Width="200">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid Width="{Binding ActualWidth, ElementName=ProgressColumn}">

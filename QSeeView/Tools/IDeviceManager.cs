@@ -16,6 +16,7 @@ namespace QSeeView.Tools
     public interface IDeviceManager
     {
         event EventHandler<string> DownloadCompleted;
+        event EventHandler<IntPtr> PlaybackCompleted;
 
         DeviceModelType DeviceModelType { get; }
 

@@ -105,6 +105,8 @@ namespace QSeeView.Views
         {
             if (e.Key == System.Windows.Input.Key.C && System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl))
                 _viewModel.AreControlsVisible = !_viewModel.AreControlsVisible;
+            else if (e.Key == System.Windows.Input.Key.Escape)
+                Close();
 
             base.OnKeyDown(e);
         }
@@ -190,12 +192,18 @@ namespace QSeeView.Views
                 liveMonitor.ZoomLevel += e.Delta;
         }
 
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            base.OnRenderSizeChanged(sizeInfo);
+            _updatePictureBoxSizeTimer.Start();
+        }
+
         private void UpdatePictureBoxSizeTimer_Tick(object sender, EventArgs e)
         {
             _updatePictureBoxSizeTimer.Stop();
 
             var liveMonitor = _viewModel.LiveMonitors.FirstOrDefault(monitor => monitor.Host == _zoomedHost);
-            if (liveMonitor != null)
+            if (liveMonitor?.Host?.Child != null)
             {
                 var pictureBox = liveMonitor.Host.Child as PictureBox;
                 liveMonitor.DisplayOriginalSize = new Size(pictureBox.Width, pictureBox.Height);

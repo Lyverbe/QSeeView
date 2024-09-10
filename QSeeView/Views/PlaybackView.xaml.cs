@@ -5,6 +5,7 @@ using QSeeView.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
@@ -47,6 +48,7 @@ namespace QSeeView.Views
 
             Loaded += PlaybackView_Loaded;
             ContentRendered += (s, e) => InitializePlayback();
+            _deviceManager.PlaybackCompleted += DeviceManager_PlaybackCompleted;
         }
 
         private void PlaybackView_Loaded(object sender, EventArgs e)
@@ -104,10 +106,33 @@ namespace QSeeView.Views
             _viewModel.Start();
         }
 
+        private void DeviceManager_PlaybackCompleted(object sender, IntPtr e)
+        {
+            _viewModel.Stop();
+            _viewModel.PlaybackSliderValue = _viewModel.PlaybackSliderMaximum;
+
+            if (_viewModel.IsAutoNextEnabled)
+            {
+                _viewModel.PlayIndex++;
+                if (_viewModel.PlayIndex < _records.Count)
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(new Action(() => InitializePlayback()));
+            }
+        }
+
         private void ViewModel_PlaybackTimeChanged(object sender, EventArgs e)
         {
             if (_viewModel.IsPaused)
                 _reinitializePlayer = true;
+        }
+
+        protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
+        {
+            if (e.Source is Slider)
+            {
+                _viewModel.IsPaused = true;
+                _reinitializePlayer = true;
+            }
+            base.OnPreviewMouseLeftButtonDown(e);
         }
 
         protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
@@ -127,15 +152,17 @@ namespace QSeeView.Views
             base.OnPreviewMouseLeftButtonUp(e);
         }
 
-        private void UpdateTitle()
+        protected override void OnPreviewMouseMove(System.Windows.Input.MouseEventArgs e)
         {
-            var newTitle = "Playback - " + _records[_viewModel.PlayIndex].FileName;
-            if (_currentSpeed != 1.0)
+            var sliderControl = e.Source as Slider;
+            if (sliderControl != null)
             {
-                newTitle += $" - {_currentSpeed}x";
+                var mouseSliderPosPercent = e.GetPosition(sliderControl).X / sliderControl.RenderSize.Width;
+                var timePos = _viewModel.PlaybackSliderMinimum + ((_viewModel.PlaybackSliderMaximum - _viewModel.PlaybackSliderMinimum) * mouseSliderPosPercent);
+                _viewModel.SliderToolTip = new DateTime((long)timePos).ToString("T");
             }
 
-            Title = newTitle;
+            base.OnPreviewMouseMove(e);
         }
 
         protected override void OnPreviewKeyDown(System.Windows.Input.KeyEventArgs e)
@@ -176,6 +203,17 @@ namespace QSeeView.Views
             }
 
             base.OnPreviewKeyDown(e);
+        }
+
+        private void UpdateTitle()
+        {
+            var newTitle = "Playback - " + _records[_viewModel.PlayIndex].FileName;
+            if (_currentSpeed != 1.0)
+            {
+                newTitle += $" - {_currentSpeed}x";
+            }
+
+            Title = newTitle;
         }
 
         private void ReduceSpeed()
@@ -222,7 +260,6 @@ namespace QSeeView.Views
         {
             _viewModel.PlaybackSliderMinimum = _records[_viewModel.PlayIndex].StartTime.Ticks;
             _viewModel.PlaybackSliderMaximum = _records[_viewModel.PlayIndex].EndTime.Ticks;
-            _viewModel.SliderLargeChange = (_viewModel.PlaybackSliderMaximum - _viewModel.PlaybackSliderMinimum) / 10;
         }
 
         private void ViewModel_UpdateSlider(object sender, EventArgs e)

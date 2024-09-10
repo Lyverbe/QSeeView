@@ -26,11 +26,12 @@ namespace QSeeView.ViewModels
         private double _playbackSliderValue;
         private Timer _playbackUpdateTimer;
         private string _sliderTimeText;
-        private double _sliderLargeChange;
         private bool _isPaused;
         private bool _isSelectedInQuery;
         private string _recordLength;
         private int _playIndex;
+        private bool _isAutoNextEnabled;
+        private string _sliderToolTip;
 
         public PlaybackViewModel(int playIndex, int recordCount)
         {
@@ -127,16 +128,6 @@ namespace QSeeView.ViewModels
             }
         }
 
-        public double SliderLargeChange
-        {
-            get => _sliderLargeChange;
-            set
-            {
-                _sliderLargeChange = value;
-                OnPropertyChanged(nameof(SliderLargeChange));
-            }
-        }
-
         public bool IsSelectedInQuery
         {
             get => _isSelectedInQuery;
@@ -170,10 +161,29 @@ namespace QSeeView.ViewModels
         }
         public int PlayIndexPlusOne => PlayIndex + 1;
 
+        public bool IsAutoNextEnabled
+        {
+            get => _isAutoNextEnabled;
+            set
+            {
+                _isAutoNextEnabled = value;
+                OnPropertyChanged(nameof(IsAutoNextEnabled));
+            }
+        }
+
         public bool IsLandscape { get; set; }
         public double ImageInitialWidth => IsLandscape ? App.HDSize.Width : App.HDSize.Height;
         public double ImageInitialHeight => IsLandscape ? App.HDSize.Height : App.HDSize.Width;
         public int RecordCount { get; }
+        public string SliderToolTip
+        {
+            get => _sliderToolTip;
+            set
+            {
+                _sliderToolTip = value;
+                OnPropertyChanged(nameof(SliderToolTip));
+            }
+        }
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 

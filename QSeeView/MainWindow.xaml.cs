@@ -50,6 +50,7 @@ namespace QSeeView
             _viewModel.ExportQuery += ViewModel_ExportQuery;
             _viewModel.HardDisksInfo += ViewModel_HardDisksInfo;
             _viewModel.ApplyDateOffset += ViewModel_ApplyDateOffset;
+            _viewModel.Logout += ViewModel_Logout;
 
             _deviceManager.DownloadCompleted += DeviceManager_DownloadCompleted;
 
@@ -384,6 +385,12 @@ namespace QSeeView
         private void ViewModel_ApplyDateOffset(object sender, EventArgs e)
         {
             _viewModel.EndDateTime = _viewModel.StartDateTime.AddDays(1);
+        }
+
+        private void ViewModel_Logout(object sender, EventArgs e)
+        {
+            App.Settings.Password = string.Empty;
+            Close();
         }
     }
 }

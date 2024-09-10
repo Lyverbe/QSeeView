@@ -24,6 +24,7 @@ namespace QSeeView
         public event EventHandler ExportQuery;
         public event EventHandler HardDisksInfo;
         public event EventHandler ApplyDateOffset;
+        public event EventHandler Logout;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -56,6 +57,7 @@ namespace QSeeView
             HardDisksInfoCommand = new RelayCommand(() => HardDisksInfo?.Invoke(this, EventArgs.Empty));
             CloseCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
             ApplyDateOffsetCommand = new RelayCommand(() => ApplyDateOffset?.Invoke(this, EventArgs.Empty));
+            LogoutCommand = new RelayCommand(() => Logout?.Invoke(this, EventArgs.Empty));
 
             State = StateType.Idle;
 
@@ -79,6 +81,7 @@ namespace QSeeView
         public ICommand HardDisksInfoCommand { get; }
         public ICommand CloseCommand { get; }
         public ICommand ApplyDateOffsetCommand { get; }
+        public ICommand LogoutCommand { get; }
 
         public ObservableCollection<string> DownloadErrors { get; private set; }
         public int TotalDownloadCount { get; set; }

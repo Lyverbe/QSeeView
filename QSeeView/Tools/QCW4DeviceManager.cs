@@ -10,15 +10,18 @@ namespace QSeeView.Tools
     public class QCW4DeviceManager : IDeviceManager
     {
         public event EventHandler<string> DownloadCompleted;
+        public event EventHandler<IntPtr> PlaybackCompleted;
 
         private bool _isInitialized;
         private bool _downloadAbort;
         private static fDownLoadPosCallBack _downloadPosCallBack;
+        private static fDownLoadPosCallBack _playbackPosCallBack;
 
         public QCW4DeviceManager()
         {
             _isInitialized = OriginalSDK.CLIENT_InitEx(DisconnectCallBack, IntPtr.Zero, IntPtr.Zero);
             _downloadPosCallBack = new fDownLoadPosCallBack(DownloadPosCallback);
+            _playbackPosCallBack = new fDownLoadPosCallBack(PlaybackPosCallback);
         }
 
         public DeviceModelType DeviceModelType => DeviceModelType.QCW4;
@@ -163,7 +166,7 @@ namespace QSeeView.Tools
             inputInfo.stStartTime = startTime;
             inputInfo.stStopTime = endTime;
             inputInfo.hWnd = windowHandle;
-            inputInfo.cbDownLoadPos = null;
+            inputInfo.cbDownLoadPos = _playbackPosCallBack;
             inputInfo.dwPosUser = IntPtr.Zero;
             inputInfo.fDownLoadDataCallBack = null;
             inputInfo.dwDataUser = IntPtr.Zero;
@@ -188,6 +191,15 @@ namespace QSeeView.Tools
             var endTime = new NET_TIME();
             NETClient.GetPlayBackOsdTime(playbackId, ref currentTime, ref startTime, ref endTime);
             return (currentTime.dwYear > 0) ? currentTime.ToDateTime().Ticks : (long?)null;
+        }
+
+        /// <summary>
+        /// Callback when the playback progress has changed
+        /// </summary>
+        private void PlaybackPosCallback(IntPtr downloadId, uint totalSize, uint downloadPos, IntPtr userData)
+        {
+            if ((ResponseType)downloadPos == ResponseType.Completed)
+                PlaybackCompleted?.Invoke(this, downloadId);
         }
 
         /// <summary>

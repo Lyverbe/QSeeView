@@ -103,7 +103,9 @@ namespace QSeeView.Tools
         [OnSerializing]
         private void OnSerializing(StreamingContext context)
         {
-            if (!string.IsNullOrEmpty(Password))
+            if (string.IsNullOrEmpty(Password))
+                EncodedPassword = string.Empty;
+            else
             {
                 var bytes = Encoding.UTF8.GetBytes(Password);
                 EncodedPassword = Convert.ToBase64String(bytes);
