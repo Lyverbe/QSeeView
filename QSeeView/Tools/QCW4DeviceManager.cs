@@ -3,7 +3,9 @@ using QSeeView.Models;
 using QSeeView.Types;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 
 namespace QSeeView.Tools
 {
@@ -240,6 +242,150 @@ namespace QSeeView.Tools
             }
 
             return hardDiskInfo;
+        }
+
+        /// <summary>
+        /// Retrieves the accounts information stored on the device
+        /// </summary>
+        /// <param name="accounts">Reference to a buffer for the list of accounts on the device.</param>
+        /// <param name="rights">Reference to a buffer for the list of available rights for the device.</param>
+        /// <param name="groups">Reference to a buffer for the list of groups on the device.</param>
+        public bool GetAccounts(ref IList<AccountModel> accounts, ref IList<RightModel> rights, ref IList<AccountGroupModel> groups)
+        {
+            accounts = new List<AccountModel>();
+            rights = new List<RightModel>();
+            groups = new List<AccountGroupModel>();
+
+            var info = new NET_USER_MANAGE_INFO_NEW();
+            info.dwSize = (uint)Marshal.SizeOf(typeof(NET_USER_MANAGE_INFO_NEW));
+            info.rightList = new NET_OPR_RIGHT_NEW[1024];
+            for (var itemId = 0; itemId < info.rightList.Length; itemId++)
+                info.rightList[itemId].dwSize = (uint)Marshal.SizeOf(typeof(NET_OPR_RIGHT_NEW));
+            info.groupList = new NET_USER_GROUP_INFO_NEW[20];
+            for (var itemId = 0; itemId < info.groupList.Length; itemId++)
+                info.groupList[itemId].dwSize = (uint)Marshal.SizeOf(typeof(NET_USER_GROUP_INFO_NEW));
+            info.userList = new NET_USER_INFO_NEW[200];
+            for (var itemId = 0; itemId < info.userList.Length; itemId++)
+                info.userList[itemId].dwSize = (uint)Marshal.SizeOf(typeof(NET_USER_INFO_NEW));
+            info.groupListEx = new NET_USER_GROUP_INFO_EX2[20];
+            for (var itemId = 0; itemId < info.groupListEx.Length; itemId++)
+                info.groupListEx[itemId].dwSize = (uint)Marshal.SizeOf(typeof(NET_USER_GROUP_INFO_EX2));
+            var success = NETClient.QueryUserInfoNew(LoginId, ref info, 5000);
+            if (!success)
+                return false;
+
+            for (var userId = 0; userId < info.dwUserNum; userId++)
+                accounts.Add(new AccountModel(info.userList[userId]));
+            for (var rightId = 0; rightId < info.dwRightNum; rightId++)
+                rights.Add(new RightModel(info.rightList[rightId]));
+            for (var groupId = 0; groupId < info.dwGroupNum; groupId++)
+                groups.Add(new AccountGroupModel(info.groupListEx[groupId]));
+
+            return true;
+        }
+
+        /// <summary>
+        /// Adds an account on the device
+        /// </summary>
+        public bool AddAccount(NET_USER_INFO_NEW userInfo)
+        {
+            var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(NET_USER_INFO_NEW)));
+            Marshal.StructureToPtr(userInfo, ptr, true);
+
+            var success = NETClient.OperateUserInfoNew(LoginId, EM_OPERATE_USER_TYPE.ADD_USER, ptr, IntPtr.Zero, 5000);
+            Marshal.FreeHGlobal(ptr);
+            return success;
+        }
+
+        /// <summary>
+        /// Deletes an account on the device
+        /// </summary>
+        public bool DeleteAccount(NET_USER_INFO_NEW userInfo)
+        {
+            var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(NET_USER_INFO_NEW)));
+            Marshal.StructureToPtr(userInfo, ptr, true);
+
+            var success = NETClient.OperateUserInfoNew(LoginId, EM_OPERATE_USER_TYPE.DEL_USER, ptr, IntPtr.Zero, 5000);
+            Marshal.FreeHGlobal(ptr);
+            return success;
+        }
+
+        public bool UpdateAccount(NET_USER_INFO_NEW originalUserInfo, NET_USER_INFO_NEW updatedUserInfo) =>
+            UpdateAccount(originalUserInfo, updatedUserInfo, EM_OPERATE_USER_TYPE.MODIFY_USER);
+        public bool UpdatePassword(NET_USER_INFO_NEW originalUserInfo, NET_USER_INFO_NEW updatedUserInfo) =>
+            UpdateAccount(originalUserInfo, updatedUserInfo, EM_OPERATE_USER_TYPE.MODIFY_PASSWORD);
+        private bool UpdateAccount(NET_USER_INFO_NEW originalUserInfo, NET_USER_INFO_NEW updatedUserInfo, EM_OPERATE_USER_TYPE operation)
+        {
+            var originalPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(NET_USER_INFO_NEW)));
+            Marshal.StructureToPtr(originalUserInfo, originalPtr, true);
+            var updatedPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(NET_USER_INFO_NEW)));
+            Marshal.StructureToPtr(updatedUserInfo, updatedPtr, true);
+
+            var success = NETClient.OperateUserInfoNew(LoginId, operation, updatedPtr, originalPtr, 5000);
+            Marshal.FreeHGlobal(originalPtr);
+            Marshal.FreeHGlobal(updatedPtr);
+            return success;
+        }
+
+        /// <summary>
+        /// Retrieves log records
+        /// </summary>
+        public IEnumerable<LogModel> GetLogs(DateTime startDate, DateTime endDate)
+        {
+            NET_QUERY_DEVICE_LOG_PARAM queryDeviceLogParam = new NET_QUERY_DEVICE_LOG_PARAM();
+            queryDeviceLogParam.emLogType = EM_LOG_QUERY_TYPE.ALL;
+            queryDeviceLogParam.stuStartTime = new NET_TIME()
+            {
+                dwYear = (uint)startDate.Year,
+                dwMonth = (uint)startDate.Month,
+                dwDay = (uint)startDate.Day
+            };
+            queryDeviceLogParam.stuEndTime = new NET_TIME()
+            {
+                dwYear = (uint)endDate.Year,
+                dwMonth = (uint)endDate.Month,
+                dwDay = (uint)endDate.Day
+            };
+            queryDeviceLogParam.nChannelID = 0;
+            queryDeviceLogParam.nLogStuType = 1;
+
+            queryDeviceLogParam.nStartNum = 0;
+            var recLogNum = 0;
+            const int maxPerBatch = 100;
+            var bufferSize = (maxPerBatch + 1) * Marshal.SizeOf(typeof(NET_DEVICE_LOG_ITEM_EX));
+            var buffer = Marshal.AllocHGlobal(bufferSize);
+
+            List<LogModel> logs = null;
+            do
+            {
+                queryDeviceLogParam.nEndNum = queryDeviceLogParam.nStartNum + maxPerBatch - 1;
+                var success = NETClient.QueryDeviceLog(LoginId, ref queryDeviceLogParam, buffer, bufferSize, ref recLogNum, 10000);
+
+                if (success)
+                {
+                    if (logs == null)
+                        logs = new List<LogModel>();
+                    for (var logId = 0; logId < recLogNum; ++logId)
+                    {
+                        var source = (NET_DEVICE_LOG_ITEM_EX)Marshal.PtrToStructure(IntPtr.Add(buffer, Marshal.SizeOf(typeof(NET_DEVICE_LOG_ITEM_EX)) * logId), typeof(NET_DEVICE_LOG_ITEM_EX));
+                        var logModel = new LogModel((uint)(queryDeviceLogParam.nStartNum + logId + 1), source);
+                        logs.Add(logModel);
+                    }
+                }
+
+                queryDeviceLogParam.nStartNum += maxPerBatch;
+            } while (recLogNum == maxPerBatch);
+            Marshal.FreeHGlobal(buffer);
+
+            return logs;
+        }
+
+        /// <summary>
+        /// Clears all log entries.  The only remaining log will be the one to tell who cleared the logs.
+        /// </summary>
+        public bool ClearLogs()
+        {
+            return NETClient.ControlDevice(LoginId, EM_CtrlType.CLEARLOG, IntPtr.Zero, 1000);
         }
     }
 }

@@ -46,5 +46,12 @@ namespace QSeeView.Tools
         bool StopSaveRealData(IntPtr handle);
 
         IEnumerable<HardDiskInfoModel> GetHardDisksInfo();
+        bool GetAccounts(ref IList<AccountModel> accounts, ref IList<RightModel> rights, ref IList<AccountGroupModel> groups);
+        bool AddAccount(NET_USER_INFO_NEW userInfo);
+        bool DeleteAccount(NET_USER_INFO_NEW userInfo);
+        bool UpdateAccount(NET_USER_INFO_NEW originalUserInfo, NET_USER_INFO_NEW updatedUserInfo);
+        bool UpdatePassword(NET_USER_INFO_NEW originalUserInfo, NET_USER_INFO_NEW updatedUserInfo);
+        IEnumerable<LogModel> GetLogs(DateTime startDate, DateTime endDate);
+        bool ClearLogs();
     }
 }

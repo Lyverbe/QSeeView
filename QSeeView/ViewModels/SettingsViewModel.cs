@@ -54,7 +54,7 @@ namespace QSeeView.ViewModels
             NightFilesStartHour = App.Settings.NightFilesStartHour;
             NightFilesEndHour = App.Settings.NightFilesEndHour;
             FfmpegPath = App.Settings.FfmpegPath;
-            StartDatesOffset = App.Settings.StartDatesOffset;
+            DatesOffset = App.Settings.StartDatesOffset;
             FileNamesPattern = App.Settings.FileNamesPattern;
             LiveViewSize = App.Settings.LiveViewSize;
             IsAutoOpenDownloads = App.Settings.IsAutoOpenDownloads;
@@ -231,7 +231,7 @@ namespace QSeeView.ViewModels
             }
         }
 
-        public int StartDatesOffset { get; set; }
+        public int DatesOffset { get; set; }
         public bool DoShowHddSpaceWarning { get; set; }
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

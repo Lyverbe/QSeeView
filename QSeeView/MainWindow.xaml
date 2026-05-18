@@ -32,7 +32,9 @@
             <MenuItem Header="Tools">
                 <MenuItem Header="Settings..." Command="{Binding SettingsCommand}" />
                 <MenuItem Header="Live view..." Command="{Binding LiveViewCommand}" InputGestureText="Ctrl+L" />
+                <MenuItem Header="Accounts..." Command="{Binding AccountsCommand}" />
                 <MenuItem Header="Hard disks info..." Command="{Binding HardDisksInfoCommand}" />
+                <MenuItem Header="Logs..." Command="{Binding LogsCommand}" />
             </MenuItem>
         </Menu>
 

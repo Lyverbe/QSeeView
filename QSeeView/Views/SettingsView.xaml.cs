@@ -42,7 +42,7 @@ namespace QSeeView.Views
                 App.Settings.NightFilesStartHour = _viewModel.NightFilesStartHour;
                 App.Settings.NightFilesEndHour = _viewModel.NightFilesEndHour;
                 App.Settings.FfmpegPath = _viewModel.FfmpegPath;
-                App.Settings.StartDatesOffset = _viewModel.StartDatesOffset;
+                App.Settings.StartDatesOffset = _viewModel.DatesOffset;
                 App.Settings.IsResettingPlaybackSpeed = _viewModel.IsResettingPlaybackSpeed;
                 App.Settings.FileNamesPattern = _viewModel.FileNamesPattern;
                 App.Settings.LiveViewSize = _viewModel.LiveViewSize;

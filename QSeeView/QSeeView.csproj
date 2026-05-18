@@ -113,10 +113,13 @@
     <Compile Include="Controls\PreviewSliderControl.cs" />
     <Compile Include="Converters\DeviceModelConverter.cs" />
     <Compile Include="Converters\ChannelIdConverter.cs" />
+    <Compile Include="Models\AccountGroupModel.cs" />
     <Compile Include="Models\CaptureFormatModel.cs" />
+    <Compile Include="Models\LogModel.cs" />
     <Compile Include="Models\HardDiskInfoModel.cs" />
     <Compile Include="Models\LiveMonitorModel.cs" />
     <Compile Include="Models\ChannelInfoModel.cs" />
+    <Compile Include="Models\RightModel.cs" />
     <Compile Include="Tools\QueryExporter.cs" />
     <Compile Include="Tools\QueryManager.cs" />
     <Compile Include="Tools\Downloader.cs" />
@@ -131,13 +134,26 @@
     <Compile Include="Types\StreamRecordType.cs" />
     <Compile Include="Types\ThemeType.cs" />
     <Compile Include="ViewModels\FilterChannelsViewModel.cs" />
+    <Compile Include="ViewModels\LogsViewModel.cs" />
     <Compile Include="ViewModels\HardDisksInfoViewModel.cs" />
     <Compile Include="ViewModels\LiveViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\SaveSnapshotSettingsViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
+    <Compile Include="Models\AccountModel.cs" />
+    <Compile Include="Views\AccountsView.xaml.cs">
+      <DependentUpon>AccountsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\AccountsViewModel.cs" />
+    <Compile Include="Views\AddAccountView.xaml.cs">
+      <DependentUpon>AddAccountView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\AddAccountViewModel.cs" />
     <Compile Include="Views\FilterChannelsView.xaml.cs">
       <DependentUpon>FilterChannelsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LogsView.xaml.cs">
+      <DependentUpon>LogsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\HardDiskInfoView.xaml.cs">
       <DependentUpon>HardDiskInfoView.xaml</DependentUpon>
@@ -174,9 +190,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\AccountsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\AddAccountView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\FilterChannelsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LogsView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\HardDiskInfoView.xaml">
       <SubType>Designer</SubType>

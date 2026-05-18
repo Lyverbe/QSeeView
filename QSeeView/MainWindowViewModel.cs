@@ -22,7 +22,9 @@ namespace QSeeView
         public event EventHandler<Button> FilterChannels;
         public event EventHandler Close;
         public event EventHandler ExportQuery;
+        public event EventHandler Accounts;
         public event EventHandler HardDisksInfo;
+        public event EventHandler Logs;
         public event EventHandler ApplyDateOffset;
         public event EventHandler Logout;
 
@@ -54,7 +56,9 @@ namespace QSeeView
             FilterChannelsCommand = new RelayCommand<Button>((button) => FilterChannels?.Invoke(this, button));
             ExitCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
             ExportQueryCommand = new RelayCommand(() => ExportQuery?.Invoke(this, EventArgs.Empty), () => Records != null && Records.Any());
+            AccountsCommand = new RelayCommand(() => Accounts?.Invoke(this, EventArgs.Empty));
             HardDisksInfoCommand = new RelayCommand(() => HardDisksInfo?.Invoke(this, EventArgs.Empty));
+            LogsCommand = new RelayCommand(() => Logs?.Invoke(this, EventArgs.Empty));
             CloseCommand = new RelayCommand(() => Close?.Invoke(this, EventArgs.Empty));
             ApplyDateOffsetCommand = new RelayCommand(() => ApplyDateOffset?.Invoke(this, EventArgs.Empty));
             LogoutCommand = new RelayCommand(() => Logout?.Invoke(this, EventArgs.Empty));
@@ -78,7 +82,9 @@ namespace QSeeView
         public ICommand FilterChannelsCommand { get; }
         public ICommand ExitCommand { get;}
         public ICommand ExportQueryCommand { get; }
+        public ICommand AccountsCommand { get; }
         public ICommand HardDisksInfoCommand { get; }
+        public ICommand LogsCommand { get; }
         public ICommand CloseCommand { get; }
         public ICommand ApplyDateOffsetCommand { get; }
         public ICommand LogoutCommand { get; }

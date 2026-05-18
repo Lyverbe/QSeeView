@@ -48,7 +48,9 @@ namespace QSeeView
             _viewModel.FilterChannels += ViewModel_FilterChannels;
             _viewModel.Close += (s, e) => Close();
             _viewModel.ExportQuery += ViewModel_ExportQuery;
+            _viewModel.Accounts += ViewModel_Accounts;
             _viewModel.HardDisksInfo += ViewModel_HardDisksInfo;
+            _viewModel.Logs += ViewModel_Logs;
             _viewModel.ApplyDateOffset += ViewModel_ApplyDateOffset;
             _viewModel.Logout += ViewModel_Logout;
 
@@ -66,7 +68,7 @@ namespace QSeeView
             var assemblyName = Assembly.GetExecutingAssembly().GetName();
             var name = assemblyName.Name;
             var version = assemblyName.Version.ToString();
-            Title = $"{name} v{version}";
+            Title = $"{name} v{version} - {App.Settings.Username}";
 
             SubscribeListVisibilityChanged();
             ClearStatusBar();
@@ -354,9 +356,25 @@ namespace QSeeView
             }
         }
 
+        private void ViewModel_Accounts(object sender, EventArgs e)
+        {
+            new AccountsView(_deviceManager)
+            {
+                Owner = this
+            }.ShowDialog();
+        }
+
         private void ViewModel_HardDisksInfo(object sender, EventArgs e)
         {
             new HardDisksInfoView(_deviceManager)
+            {
+                Owner = this
+            }.ShowDialog();
+        }
+
+        private void ViewModel_Logs(object sender, EventArgs e)
+        {
+            new LogsView(_deviceManager)
             {
                 Owner = this
             }.ShowDialog();
